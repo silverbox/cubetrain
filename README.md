@@ -13,11 +13,7 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ## その他
 
 ```bash
-# rustup target add wasm32-unknown-unknown
-# rustup install nightly
-# rustup default nightly
 cargo install cargo-make
-cargo install --force cargo-make
 cargo install cargo-generate
 ```
 
@@ -49,6 +45,14 @@ https://github.com/seed-rs/seed-quickstart
 
 参考にさせていただいたページ通りにやったがコンパイルで失敗し諦める。
 
+## インストール
+
+```bash
+rustup target add wasm32-unknown-unknown
+rustup install nightly
+rustup default nightly
+```
+
 ## ビルド
 
 ```bash
@@ -66,7 +70,7 @@ https://dev.classmethod.jp/articles/yew-firststep/
 当初、web-viewで対応しようとしていたときの情報。  
 Ubuntuにて、イベント処理が動かない（externalオブジェクトにアクセスした所で止まる）ので諦める。
 
-## 必要ライブラリsudo apt install libssl-dev
+## 必要ライブラリ
 
 もしかしたら、最後のlibwebkit2gtk-4.0-devだけでよかったかも（依存ライブラリもインストールされた？）。
 
