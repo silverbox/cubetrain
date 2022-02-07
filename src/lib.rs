@@ -3,6 +3,9 @@
 // but some rules are too "annoying" or are not applicable for your case.)
 #![allow(clippy::wildcard_imports)]
 
+mod cube;
+use cube::CubeColor;
+
 use seed::{prelude::*, *};
 
 // ------ ------
@@ -50,7 +53,13 @@ fn view(model: &Model) -> Node<Msg> {
     div![
         "This is a counter: ",
         C!["counter"],
-        button![model.counter, ev(Ev::Click, |_| Msg::Increment),],
+        button![
+            model.counter,
+            style![
+                St::BackgroundColor => CubeColor::Red.as_css_str(),
+            ],
+            ev(Ev::Click, |_| Msg::Increment),
+        ],
     ]
 }
 
