@@ -4,6 +4,7 @@
 // use super::cubic_calc::Point;
 use super::cubic_calc::*;
 
+const ROTATE_STEP: f32 = PI / 4.0;
 
 pub enum CubeColor {
   White,
@@ -45,7 +46,7 @@ pub struct Cube {
   pub size: f32,
   // 絶対空間値
   pub center_point: NormPoint,
-  // 相対座標係数
+  // 相対座標係数（初期値）
   // center_point、とそれぞれの正規化デバイス座標を元に、それぞれの絶対座標を計算する。
   pub pa: NormPoint, // 上左手前
   pub pb: NormPoint, // 上右手前
@@ -63,7 +64,7 @@ pub struct Cube {
   pub color_dahe: CubeColor, // 側面４
   pub color_efgh: CubeColor, // 下面
   //
-  // 各ポイントの値から逆算できるが、基本的に角度からそれぞれの正規化デバイス座標を算出
+  // 各点初期値と各軸中心の回転角度で、それぞれの正規化デバイス座標を算出
   pub x_axis_rotate_rad: f32,
   pub y_axis_rotate_rad: f32,
   pub z_axis_rotate_rad: f32,
@@ -100,15 +101,24 @@ impl Default for Cube {
 
 impl Cube {
   // Cubeの中心位置はそのまま。回転だけする
-  fn rotate(&mut self, rad_x: f32, rad_y: f32, rad_z: f32) {
-    self.x_axis_rotate_rad += rad_x;
-    self.y_axis_rotate_rad += rad_y;
-    self.z_axis_rotate_rad += rad_z;
-    self.pa = x_rotate(&self.pa, rad_x);
+  fn rotate(&mut self, rad_x: f32, rad_y: f32, rad_z: f32, rad_step: f32) {
+    self.x_axis_rotate_rad = Cube::adjust_rad(self.x_axis_rotate_rad + rad_x, rad_step);
+    self.y_axis_rotate_rad = Cube::adjust_rad(self.y_axis_rotate_rad + rad_y, rad_step);
+    self.z_axis_rotate_rad = Cube::adjust_rad(self.z_axis_rotate_rad + rad_z, rad_step);
+  }
+
+  fn adjust_rad(rad: f32, rad_step: f32) -> f32 {
+    let wk_rad1 = rad % (PI * 2.0);
+    let wk_multiple = ((wk_rad1 / rad_step) + 0.5) as i32;
+    (wk_multiple as f32) * rad_step
   }
 
   pub fn rotate_test(&mut self) {
-    self.rotate(PI / 2.0, 0.0, 0.0)
+    Cube::rotate(self, ROTATE_STEP, 0.0, 0.0, ROTATE_STEP)
+  }
+
+  pub fn get_norm_point_a(&self) -> NormPoint {
+    x_rotate(&self.pa, self.x_axis_rotate_rad)
   }
 }
 

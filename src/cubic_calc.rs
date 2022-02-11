@@ -17,6 +17,17 @@ pub struct NormPoint {
   pub w: f32
 }
 
+pub struct CameraVec {
+  pub x: f32,
+  pub y: f32,
+  pub z: f32
+}
+
+pub struct ViewPoint2D {
+  pub x: f32,
+  pub y: f32
+}
+
 // 平行移動
 pub fn shift(point: &NormPoint, tx: f32, ty: f32, tz: f32) -> NormPoint {
   NormPoint {
@@ -70,5 +81,28 @@ pub fn z_rotate(point: NormPoint, x_rad: f32) -> NormPoint {
     y: point.y,
     z: point.z * cos - point.x * sin,
     w: point.w
+  }
+}
+
+pub fn perspective_projection(point: NormPoint, camera_pos: &CameraVec, camera_x_axis: &CameraVec, 
+  camera_y_axis: &CameraVec, camera_z_axis: &CameraVec) -> NormPoint {
+  let point_d = NormPoint {
+    x: point.x - camera_pos.x,
+    y: point.y - camera_pos.y,
+    z: point.z - camera_pos.z,
+    w: point.w
+  };
+  NormPoint {
+    x: camera_x_axis.x * point_d.x + camera_x_axis.y * point_d.y + camera_x_axis.z * point_d.z,
+    y: camera_y_axis.x * point_d.x + camera_y_axis.y * point_d.y + camera_y_axis.z * point_d.z,
+    z: camera_z_axis.x * point_d.x + camera_z_axis.y * point_d.y + camera_z_axis.z * point_d.z,
+    w: point.w
+  }
+}
+
+pub fn viewing_transform(projected_point: NormPoint) -> ViewPoint2D {
+  ViewPoint2D {
+    x: - projected_point.y / projected_point.x,
+    y: - projected_point.z / projected_point.x,
   }
 }
