@@ -1,4 +1,10 @@
 #[allow(dead_code)]
+#[allow(clippy::wildcard_imports)]
+
+// use super::cubic_calc::Point;
+use super::cubic_calc::*;
+
+
 pub enum CubeColor {
   White,
   Yellow,
@@ -34,21 +40,21 @@ impl CubeColor {
   }
 }
 
-pub struct Point {
-  x: f32,
-  y: f32,
-  z: f32
-}
-
 pub struct Cube {
-  pub pa: Point, // 上左手前
-  pub pb: Point, // 上右手前
-  pub pc: Point, // 上右奥
-  pub pd: Point, // 上左奥
-  pub pe: Point, // 下左手前
-  pub pf: Point, // 下右手前
-  pub pg: Point, // 下右奥
-  pub ph: Point, // 下左奥
+  // １辺のサイズ
+  pub size: f32,
+  // 絶対空間値
+  pub center_point: NormPoint,
+  // 相対座標係数
+  // center_point、とそれぞれの正規化デバイス座標を元に、それぞれの絶対座標を計算する。
+  pub pa: NormPoint, // 上左手前
+  pub pb: NormPoint, // 上右手前
+  pub pc: NormPoint, // 上右奥
+  pub pd: NormPoint, // 上左奥
+  pub pe: NormPoint, // 下左手前
+  pub pf: NormPoint, // 下右手前
+  pub pg: NormPoint, // 下右奥
+  pub ph: NormPoint, // 下左奥
   //
   pub color_abcd: CubeColor, // 上面
   pub color_abef: CubeColor, // 側面１
@@ -57,22 +63,26 @@ pub struct Cube {
   pub color_dahe: CubeColor, // 側面４
   pub color_efgh: CubeColor, // 下面
   //
-  pub x_axis_rotate_angle: f32,
-  pub y_axis_rotate_angle: f32,
-  pub z_axis_rotate_angle: f32,
+  // 各ポイントの値から逆算できるが、基本的に角度からそれぞれの正規化デバイス座標を算出
+  pub x_axis_rotate_rad: f32,
+  pub y_axis_rotate_rad: f32,
+  pub z_axis_rotate_rad: f32,
 }
 
 impl Default for Cube {
   fn default() -> Self {
     Self {
-      pa: Point {x: -50.0, y: -50.0, z:  50.0},
-      pb: Point {x:  50.0, y: -50.0, z:  50.0},
-      pc: Point {x:  50.0, y:  50.0, z:  50.0},
-      pd: Point {x: -50.0, y:  50.0, z:  50.0},
-      pe: Point {x: -50.0, y: -50.0, z: -50.0},
-      pf: Point {x:  50.0, y: -50.0, z: -50.0},
-      pg: Point {x:  50.0, y:  50.0, z: -50.0},
-      ph: Point {x: -50.0, y:  50.0, z: -50.0},
+      size: 100.0,
+      center_point: NormPoint {x: 0.0, y:  0.0, z: 0.0, w: 1.0},
+      //
+      pa: NormPoint {x: -1.0, y: -1.0, z:  1.0, w: 1.0},
+      pb: NormPoint {x:  1.0, y: -1.0, z:  1.0, w: 1.0},
+      pc: NormPoint {x:  1.0, y:  1.0, z:  1.0, w: 1.0},
+      pd: NormPoint {x: -1.0, y:  1.0, z:  1.0, w: 1.0},
+      pe: NormPoint {x: -1.0, y: -1.0, z: -1.0, w: 1.0},
+      pf: NormPoint {x:  1.0, y: -1.0, z: -1.0, w: 1.0},
+      pg: NormPoint {x:  1.0, y:  1.0, z: -1.0, w: 1.0},
+      ph: NormPoint {x: -1.0, y:  1.0, z: -1.0, w: 1.0},
       //
       color_abcd: CubeColor::White,
       color_abef: CubeColor::Red,
@@ -81,10 +91,24 @@ impl Default for Cube {
       color_dahe: CubeColor::Lime,
       color_efgh: CubeColor::Yellow,
       //
-      x_axis_rotate_angle: 0.0,
-      y_axis_rotate_angle: 0.0,
-      z_axis_rotate_angle: 0.0,
+      x_axis_rotate_rad: 0.0,
+      y_axis_rotate_rad: 0.0,
+      z_axis_rotate_rad: 0.0,
     }
+  }
+}
+
+impl Cube {
+  // Cubeの中心位置はそのまま。回転だけする
+  fn rotate(&mut self, rad_x: f32, rad_y: f32, rad_z: f32) {
+    self.x_axis_rotate_rad += rad_x;
+    self.y_axis_rotate_rad += rad_y;
+    self.z_axis_rotate_rad += rad_z;
+    self.pa = x_rotate(&self.pa, rad_x);
+  }
+
+  pub fn rotate_test(&mut self) {
+    self.rotate(PI / 2.0, 0.0, 0.0)
   }
 }
 
@@ -122,9 +146,7 @@ impl Default for Cube {
 
 // /**
 //  白上面、赤正面、青右側面。キューブの辺の長さを100として、キューブ集合体の中心座標が(0,0,0)
-//  x軸：右側面方向
-//  z軸：上方向
-//  y軸：奥方向
+
 //  */
 // impl Default for CubeSet {
 //   fn default() -> Self {

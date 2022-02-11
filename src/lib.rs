@@ -4,6 +4,8 @@
 #![allow(clippy::wildcard_imports)]
 
 mod cube;
+mod cubic_calc;
+
 use cube::CubeColor;
 use cube::Cube;
 
@@ -52,7 +54,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
         Msg::RandomRotate => model.counter += 1,
         Msg::Rendered => {
-            draw(&model.canvas, &model.cube);
+            draw(&model.canvas, &mut model.cube);
             // We want to call `.skip` to prevent infinite loop.
             // (However infinite loops are useful for animations.)
             orders.after_next_render(|_| Msg::Rendered).skip();
@@ -60,7 +62,9 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     }
 }
 
-fn draw(canvas: &ElRef<HtmlCanvasElement>, cube: &Cube) {
+fn draw(canvas: &ElRef<HtmlCanvasElement>, cube: &mut Cube) {
+    cube.rotate_test();
+    println!("pa.y is {}", cube.pa.y);
     let canvas = canvas.get().expect("get canvas element");
     let ctx = seed::canvas_context_2d(&canvas);
 
@@ -72,12 +76,16 @@ fn draw(canvas: &ElRef<HtmlCanvasElement>, cube: &Cube) {
     let height = 100. ;
 
     ctx.rect(0., 0., width, height);
-    ctx.set_fill_style(&JsValue::from_str(cube.color_bcfg.as_css_str()));
+    ctx.set_fill_style(&JsValue::from_str(cube.color_dahe.as_css_str()));
     ctx.fill();
 
     ctx.move_to(0., 0.);
     ctx.line_to(width, height);
     ctx.stroke();
+
+    let debugtxt = format!("pa.y is {}", cube.pa.y);
+    ctx.set_fill_style(&JsValue::from_str("red"));
+    ctx.fill_text(&debugtxt, 100.0, 50.0);
 }
 
 // ------ ------
