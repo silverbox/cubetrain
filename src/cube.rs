@@ -41,6 +41,10 @@ impl CubeColor {
   }
 }
 
+// 右手座標系
+// x軸：右側面方向
+// y軸：上方向
+// z軸：手前方向
 pub struct Cube {
   // １辺のサイズ
   pub size: f32,
@@ -76,14 +80,14 @@ impl Default for Cube {
       size: 100.0,
       center_point: NormPoint {x: 0.0, y:  0.0, z: 0.0, w: 1.0},
       //
-      pa: NormPoint {x: -1.0, y: -1.0, z:  1.0, w: 1.0},
-      pb: NormPoint {x:  1.0, y: -1.0, z:  1.0, w: 1.0},
-      pc: NormPoint {x:  1.0, y:  1.0, z:  1.0, w: 1.0},
-      pd: NormPoint {x: -1.0, y:  1.0, z:  1.0, w: 1.0},
-      pe: NormPoint {x: -1.0, y: -1.0, z: -1.0, w: 1.0},
-      pf: NormPoint {x:  1.0, y: -1.0, z: -1.0, w: 1.0},
-      pg: NormPoint {x:  1.0, y:  1.0, z: -1.0, w: 1.0},
-      ph: NormPoint {x: -1.0, y:  1.0, z: -1.0, w: 1.0},
+      pa: NormPoint {x: -1.0, y:  1.0, z:  1.0, w: 1.0},
+      pb: NormPoint {x:  1.0, y:  1.0, z:  1.0, w: 1.0},
+      pc: NormPoint {x:  1.0, y:  1.0, z: -1.0, w: 1.0},
+      pd: NormPoint {x: -1.0, y:  1.0, z: -1.0, w: 1.0},
+      pe: NormPoint {x: -1.0, y: -1.0, z:  1.0, w: 1.0},
+      pf: NormPoint {x:  1.0, y: -1.0, z:  1.0, w: 1.0},
+      pg: NormPoint {x:  1.0, y: -1.0, z: -1.0, w: 1.0},
+      ph: NormPoint {x: -1.0, y: -1.0, z: -1.0, w: 1.0},
       //
       color_abcd: CubeColor::White,
       color_abef: CubeColor::Red,
@@ -100,12 +104,6 @@ impl Default for Cube {
 }
 
 impl Cube {
-  // Cubeの中心位置はそのまま。回転だけする
-  fn rotate(&mut self, rad_x: f32, rad_y: f32, rad_z: f32, rad_step: f32) {
-    self.x_axis_rotate_rad = Cube::adjust_rad(self.x_axis_rotate_rad + rad_x, rad_step);
-    self.y_axis_rotate_rad = Cube::adjust_rad(self.y_axis_rotate_rad + rad_y, rad_step);
-    self.z_axis_rotate_rad = Cube::adjust_rad(self.z_axis_rotate_rad + rad_z, rad_step);
-  }
 
   fn adjust_rad(rad: f32, rad_step: f32) -> f32 {
     let wk_rad1 = rad % (PI * 2.0);
@@ -113,8 +111,17 @@ impl Cube {
     (wk_multiple as f32) * rad_step
   }
 
-  pub fn rotate_test(&mut self) {
-    Cube::rotate(self, ROTATE_STEP, 0.0, 0.0, ROTATE_STEP);
+  // Cubeの中心位置はそのまま。回転だけする
+  fn rotate(&mut self, rad_x: f32, rad_y: f32, rad_z: f32, rad_step: f32) {
+    self.x_axis_rotate_rad = Cube::adjust_rad(self.x_axis_rotate_rad + rad_x, rad_step);
+    self.y_axis_rotate_rad = Cube::adjust_rad(self.y_axis_rotate_rad + rad_y, rad_step);
+    self.z_axis_rotate_rad = Cube::adjust_rad(self.z_axis_rotate_rad + rad_z, rad_step);
+  }
+
+  fn get_norm_point(&self, norm_point: &NormPoint) -> NormPoint {
+    let obj_normwk_point_1 = x_rotate(norm_point, self.x_axis_rotate_rad);
+    let obj_normwk_point_2 = y_rotate(&obj_normwk_point_1, self.y_axis_rotate_rad);
+    z_rotate(&obj_normwk_point_2, self.z_axis_rotate_rad)
   }
 
   pub fn get_abs_point(&self, point_name: &str) -> NormPoint {
@@ -137,12 +144,37 @@ impl Cube {
     }
   }
 
-  fn get_norm_point(&self, norm_point: &NormPoint) -> NormPoint {
-    let obj_normwk_point_1 = x_rotate(norm_point, self.x_axis_rotate_rad);
-    let obj_normwk_point_2 = y_rotate(obj_normwk_point_1, self.y_axis_rotate_rad);
-    z_rotate(obj_normwk_point_2, self.z_axis_rotate_rad)
+  pub fn rotate_test(&mut self) {
+    self.rotate(ROTATE_STEP, 0.0, 0.0, ROTATE_STEP);
   }
 }
+
+// ------ ------
+//     Test
+// ------ ------
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn rotate_test() {
+    let testcube = &mut Cube::default();
+
+    let point_a1 = testcube.get_abs_point("a");
+    assert_eq!(point_a1.x, -100.0);
+    assert_eq!(point_a1.y,  100.0);
+
+    testcube.rotate_test();
+    assert_eq!(testcube.x_axis_rotate_rad, ROTATE_STEP);
+
+    let point_a2 = testcube.get_abs_point("a");
+    let obj_norm_point2 = testcube.get_norm_point(&point_a2);
+    assert_eq!(point_a2.x as i32, -100);
+    assert_eq!(point_a2.z as i32,  141);
+  }
+}
+
 
 // struct CubeSet {
 //   white_center: Cube,
