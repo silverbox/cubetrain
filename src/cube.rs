@@ -114,11 +114,33 @@ impl Cube {
   }
 
   pub fn rotate_test(&mut self) {
-    Cube::rotate(self, ROTATE_STEP, 0.0, 0.0, ROTATE_STEP)
+    Cube::rotate(self, ROTATE_STEP, 0.0, 0.0, ROTATE_STEP);
   }
 
-  pub fn get_norm_point_a(&self) -> NormPoint {
-    x_rotate(&self.pa, self.x_axis_rotate_rad)
+  pub fn get_abs_point(&self, point_name: &str) -> NormPoint {
+    let obj_norm_point = self.get_norm_point(&self.get_target_point(point_name));
+    let scaled_point = scale(&obj_norm_point, self.size, self.size, self.size);
+    shift(&scaled_point, self.center_point.x, self.center_point.y, self.center_point.z)
+  }
+
+  fn get_target_point(&self, point_name: &str) -> &NormPoint {
+    match point_name {
+      "a" => &self.pa ,
+      "b" => &self.pb ,
+      "c" => &self.pc ,
+      "d" => &self.pd ,
+      "e" => &self.pe ,
+      "f" => &self.pf ,
+      "g" => &self.pg ,
+      "h" => &self.ph ,
+      _ => &self.pa
+    }
+  }
+
+  fn get_norm_point(&self, norm_point: &NormPoint) -> NormPoint {
+    let obj_normwk_point_1 = x_rotate(norm_point, self.x_axis_rotate_rad);
+    let obj_normwk_point_2 = y_rotate(obj_normwk_point_1, self.y_axis_rotate_rad);
+    z_rotate(obj_normwk_point_2, self.z_axis_rotate_rad)
   }
 }
 

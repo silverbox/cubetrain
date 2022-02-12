@@ -12,6 +12,7 @@ mod cubic_calc;
 use cube::CubeColor;
 use cube::Cube;
 
+use cubic_calc::NormPoint;
 use cubic_calc::CameraVec;
 use cubic_calc::ViewPoint2D;
 use cubic_calc::perspective_projection;
@@ -96,13 +97,31 @@ fn draw(model: &mut Model) {
     ctx.stroke();
 
     cube.rotate_test();
-    let perspective_point_wk = perspective_projection(cube.get_norm_point_a(), &model.camera_pos,
-        &model.camera_x_axis, &model.camera_y_axis, &model.camera_z_axis);
-    let view_point = viewing_transform(perspective_point_wk);
-    // let debugtxt = format!("pa.y is {}", cube.get_norm_point_a().y);
-    let debugtxt = format!("perspective z is {}", view_point.x);
+    let perspective_point_wk_a = get_abs_perspective_point("a", &model);
+    let perspective_point_wk_b = get_abs_perspective_point("b", &model);
+    let perspective_point_wk_c = get_abs_perspective_point("c", &model);
+    ctx.move_to((perspective_point_wk_a.x + 200.0) as f64, (perspective_point_wk_a.z + 100.0) as f64);
+    ctx.line_to((perspective_point_wk_b.x + 200.0) as f64, (perspective_point_wk_b.z + 100.0) as f64);
+    ctx.line_to((perspective_point_wk_c.x + 200.0) as f64, (perspective_point_wk_c.z + 100.0) as f64);
+    ctx.line_to((perspective_point_wk_a.x + 200.0) as f64, (perspective_point_wk_a.z + 100.0) as f64);
+    // let view_point_a = viewing_transform(&perspective_point_wk_a);
+    // let view_point_b = viewing_transform(&perspective_point_wk_b);
+    // let view_point_c = viewing_transform(&perspective_point_wk_c);
+    // ctx.move_to((view_point_a.x + 200.0) as f64, (view_point_a.y + 100.0) as f64);
+    // ctx.line_to((view_point_b.x + 200.0) as f64, (view_point_b.y + 100.0) as f64);
+    // ctx.line_to((view_point_c.x + 200.0) as f64, (view_point_c.y + 100.0) as f64);
+    // ctx.line_to((view_point_a.x + 200.0) as f64, (view_point_a.y + 100.0) as f64);
+    ctx.stroke();
+
+    let debugtxt = format!("perspective_point_wk_a x={}, y={}, z={}", perspective_point_wk_a.x, perspective_point_wk_a.y, perspective_point_wk_a.z);
     ctx.set_fill_style(&JsValue::from_str("red"));
     ctx.fill_text(&debugtxt, 100.0, 50.0);
+}
+
+fn get_abs_perspective_point(point_name: &str, model: &Model) -> NormPoint {
+    let cube = &model.cube;
+    perspective_projection(cube.get_abs_point(point_name), &model.camera_pos,
+        &model.camera_x_axis, &model.camera_y_axis, &model.camera_z_axis)
 }
 
 // ------ ------

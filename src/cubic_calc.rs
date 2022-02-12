@@ -100,7 +100,7 @@ pub fn perspective_projection(point: NormPoint, camera_pos: &CameraVec, camera_x
   }
 }
 
-pub fn viewing_transform(projected_point: NormPoint) -> ViewPoint2D {
+pub fn viewing_transform(projected_point: &NormPoint) -> ViewPoint2D {
   ViewPoint2D {
     x: - projected_point.y / projected_point.x,
     y: - projected_point.z / projected_point.x,
