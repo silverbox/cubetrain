@@ -4,7 +4,7 @@
 // use super::cubic_calc::Point;
 use super::cubic_calc::*;
 
-const ROTATE_STEP: f32 = PI / 4.0;
+const ROTATE_STEP: f32 = PI / 16.0;
 
 pub enum CubeColor {
   White,

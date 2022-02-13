@@ -23,9 +23,27 @@ pub struct CameraVec {
   pub z: f32
 }
 
+pub struct CameraAxisPoint {
+  pub x: f32,
+  pub y: f32,
+  pub z: f32,
+  pub w: f32
+}
+
 pub struct ViewPoint2D {
   pub x: f32,
-  pub y: f32
+  pub y: f32,
+  pub z: f32,
+  pub w: f32
+}
+
+pub struct ViewFrustum {
+  pub left: f32,
+  pub right: f32,
+  pub top: f32,
+  pub bottom: f32,
+  pub near: f32,
+  pub far: f32
 }
 
 // 平行移動
@@ -85,13 +103,13 @@ pub fn z_rotate(point: &NormPoint, z_rad: f32) -> NormPoint {
 }
 
 pub fn perspective_projection(point: &NormPoint, camera_pos: &CameraVec, camera_x_axis: &CameraVec, 
-  camera_y_axis: &CameraVec, camera_z_axis: &CameraVec) -> NormPoint {
+  camera_y_axis: &CameraVec, camera_z_axis: &CameraVec) -> CameraAxisPoint {
   let camera_vec = CameraVec {
     x: camera_x_axis.x * camera_pos.x + camera_x_axis.y * camera_pos.y + camera_x_axis.z * camera_pos.z,
     y: camera_y_axis.x * camera_pos.x + camera_y_axis.y * camera_pos.y + camera_y_axis.z * camera_pos.z,
     z: camera_z_axis.x * camera_pos.x + camera_z_axis.y * camera_pos.y + camera_z_axis.z * camera_pos.z,
   };
-  NormPoint {
+  CameraAxisPoint {
     x: camera_x_axis.x * point.x + camera_x_axis.y * point.y + camera_x_axis.z * point.z - camera_vec.x,
     y: camera_y_axis.x * point.x + camera_y_axis.y * point.y + camera_y_axis.z * point.z - camera_vec.y,
     z: camera_z_axis.x * point.x + camera_z_axis.y * point.y + camera_z_axis.z * point.z - camera_vec.z,
@@ -99,10 +117,12 @@ pub fn perspective_projection(point: &NormPoint, camera_pos: &CameraVec, camera_
   }
 }
 
-pub fn viewing_transform(projected_point: &NormPoint) -> ViewPoint2D {
+pub fn viewing_transform(camera_point: &CameraAxisPoint, vf: &ViewFrustum) -> ViewPoint2D {
   ViewPoint2D {
-    x: - projected_point.y / projected_point.x,
-    y: - projected_point.z / projected_point.x,
+    x:  2.0 * vf.near * camera_point.x / (vf.right - vf.left) + camera_point.z * (vf.right + vf.left) / (vf.right - vf.left),
+    y:  2.0 * vf.near * camera_point.y / (vf.top - vf.bottom) + camera_point.z * (vf.top + vf.bottom) / (vf.top - vf.bottom),
+    z: -1.0 * camera_point.z * (vf.far + vf.near) / (vf.far - vf.near) - 2.0 * camera_point.w * vf.far * vf.near / (vf.far - vf.near),
+    w: -1.0 * camera_point.z
   }
 }
 
@@ -170,8 +190,8 @@ mod tests {
     assert_eq!(perspective_point_b.x, 0.0);
     assert_eq!(perspective_point_b.y, 0.0);
     assert_eq!(perspective_point_b.z, 173.1);
-    let debugtxt_b = format!("perspective_point_b x={}, y={}, z={}", perspective_point_b.x, perspective_point_b.y, perspective_point_b.z);
-    print!("{}\n", debugtxt_b);
+    // let debugtxt_b = format!("perspective_point_b x={}, y={}, z={}", perspective_point_b.x, perspective_point_b.y, perspective_point_b.z);
+    // print!("{}\n", debugtxt_b);
 
     let org_point_c = NormPoint {x: 100.0, y: 100.0, z: -100.0, w: 1.0};
     let perspective_point_c = perspective_projection(&org_point_c, &camera_pos, &camera_x_axis, &camera_y_axis, &camera_z_axis);
@@ -188,5 +208,23 @@ mod tests {
     assert_eq!(perspective_point_f.x,    0.0);
     assert_eq!(perspective_point_f.y, -162.0);
     assert_eq!(perspective_point_f.z,  288.5);
+
+    let org_point_e = NormPoint {x: -100.0, y: -100.0, z: 100.0, w: 1.0};
+    let perspective_point_e = perspective_projection(&org_point_e, &camera_pos, &camera_x_axis, &camera_y_axis, &camera_z_axis);
+    assert_eq!(perspective_point_e.x, 141.2);
+    assert_eq!(perspective_point_e.y, -81.0);
+    assert_eq!(get_permil(perspective_point_e.z), 403900);
+
+    let vf = ViewFrustum { left: 200.0, right: -200.0, top: 200.0, bottom: -200.0, near: 100.0, far: 200.0 };
+
+    let view_p_a = viewing_transform(&perspective_point, &vf);
+    print!("view a x={}, y={}\n", view_p_a.x, view_p_a.y);
+    assert_eq!(view_p_a.x, -70.6);
+    assert_eq!(view_p_a.y,  40.5);
+
+    let view_p_e = viewing_transform(&perspective_point_e, &vf);
+    print!("view e x={}, y={}\n", view_p_e.x, view_p_e.y);
+    assert_eq!(view_p_e.x, -70.6);
+    assert_eq!(view_p_e.y, -40.5);
   }
 }
