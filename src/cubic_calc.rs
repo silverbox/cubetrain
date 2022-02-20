@@ -37,6 +37,7 @@ pub struct ViewPoint2D {
   pub w: f32
 }
 
+// 視野錐台
 pub struct ViewFrustum {
   pub left: f32,
   pub right: f32,
@@ -102,6 +103,7 @@ pub fn z_rotate(point: &NormPoint, z_rad: f32) -> NormPoint {
   }
 }
 
+// 透視投影
 pub fn perspective_projection(point: &NormPoint, camera_pos: &CameraVec, camera_x_axis: &CameraVec, 
   camera_y_axis: &CameraVec, camera_z_axis: &CameraVec) -> CameraAxisPoint {
   let camera_vec = CameraVec {
@@ -117,6 +119,7 @@ pub fn perspective_projection(point: &NormPoint, camera_pos: &CameraVec, camera_
   }
 }
 
+// 2D視点に変換
 pub fn viewing_transform(camera_point: &CameraAxisPoint, vf: &ViewFrustum) -> ViewPoint2D {
   ViewPoint2D {
     x:  2.0 * vf.near * camera_point.x / (vf.right - vf.left) + camera_point.z * (vf.right + vf.left) / (vf.right - vf.left),
