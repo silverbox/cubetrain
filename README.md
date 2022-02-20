@@ -40,6 +40,28 @@ cargo make serve
 https://github.com/seed-rs/seed-quickstart
 
 
+# 3Dオブジェクトの描画に関して参考にさせていただいたページ
+
+## 2Dへの投影に関して
+
+### 3D座標変換知識
+https://sbfl.net/blog/2016/09/05/webgl2-tutorial-3d-knowledge/
+http://www.cgg.cs.tsukuba.ac.jp/~endo/lecture/2020/cgbasics/03/03.pdf
+
+### ワールド座標からカメラ座標への変換
+https://mem-archive.com/2018/02/17/post-74/
+
+### カメラY軸に関して
+https://yttm-work.jp/gmpg/gmpg_0003.html
+
+### 透視変換の行列式
+http://kondolab.org/archive/2010/research/cadcgtext/Chap5/Chap504.html
+
+## 陰線処理
+
+http://www.myu.ac.jp/~makanae/CG/cg1_14.htm
+
+# 以降、当時トライしたが導入断念したフロー
 
 # yew
 

@@ -11,6 +11,7 @@ mod cubic_calc;
 
 use cube::CubeColor;
 use cube::Cube;
+use cube::CubeSurface;
 
 use cubic_calc::NormPoint;
 use cubic_calc::CameraVec;
@@ -29,7 +30,8 @@ fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
     orders.after_next_render(|_| Msg::Rendered);
     Model { 
         counter: 0,
-        camera_pos: CameraVec { x: 0.0, y: 0.0, z: -300.0 },
+        // 中心と点Bを結ぶ方向から中心にカメラを向ける形
+        camera_pos: CameraVec { x: 200.0, y: 200.0, z: 200.0 },
         camera_x_axis: CameraVec { x: -0.706, y:  0.0  , z:  0.706 },
         camera_y_axis: CameraVec { x: -0.405, y:  0.810, z: -0.405 }, // vec X * vec Z
         camera_z_axis: CameraVec { x: -0.577, y: -0.577, z: -0.577 },
@@ -73,6 +75,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
         Msg::RandomRotate => model.counter += 1,
         Msg::Rendered => {
+            model.cube.rotate_test();
             draw(model);
             // We want to call `.skip` to prevent infinite loop.
             // (However infinite loops are useful for animations.)
@@ -81,35 +84,35 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     }
 }
 
-fn draw(model: &mut Model) {
-    let cube = &mut model.cube;
-    let canvas = &model.canvas.get().expect("get canvas element");
+fn draw(model: &Model) {
+    let cube = &model.cube;
+    let canvas = model.canvas.get().expect("get canvas element");
     let ctx = seed::canvas_context_2d(&canvas);
 
     // clear canvas
     ctx.begin_path();
     ctx.clear_rect(0., 0., 800., 800.);
 
-    let width = 200. ;
-    let height = 100. ;
+    // let width = 50. ;
+    // let height = 20. ;
 
-    ctx.rect(0., 0., width, height);
-    ctx.set_fill_style(&JsValue::from_str(cube.color_dahe.as_css_str()));
-    ctx.fill();
+    // ctx.rect(0., 0., width, height);
+    // ctx.set_fill_style(&JsValue::from_str(cube.color_dahe.as_css_str()));
+    // ctx.fill();
 
-    ctx.move_to(0., 0.);
-    ctx.line_to(width, height);
-    ctx.stroke();
+    // ctx.move_to(0., 0.);
+    // ctx.line_to(width, height);
+    // ctx.stroke();
 
-    cube.rotate_test();
-    let perspective_point_wk_a = get_abs_perspective_point("a", &model);
-    let perspective_point_wk_b = get_abs_perspective_point("b", &model);
-    let perspective_point_wk_c = get_abs_perspective_point("c", &model);
-    let perspective_point_wk_d = get_abs_perspective_point("d", &model);
-    let perspective_point_wk_e = get_abs_perspective_point("e", &model);
-    let perspective_point_wk_f = get_abs_perspective_point("f", &model);
-    let perspective_point_wk_g = get_abs_perspective_point("g", &model);
-    let perspective_point_wk_h = get_abs_perspective_point("h", &model);
+    // 立方体描画
+    let perspective_point_wk_a = get_abs_perspective_point("a", model);
+    let perspective_point_wk_b = get_abs_perspective_point("b", model);
+    let perspective_point_wk_c = get_abs_perspective_point("c", model);
+    let perspective_point_wk_d = get_abs_perspective_point("d", model);
+    let perspective_point_wk_e = get_abs_perspective_point("e", model);
+    let perspective_point_wk_f = get_abs_perspective_point("f", model);
+    let perspective_point_wk_g = get_abs_perspective_point("g", model);
+    let perspective_point_wk_h = get_abs_perspective_point("h", model);
 
     let vf = ViewFrustum { left: 200.0, right: -200.0, top: 200.0, bottom: -200.0, near: 100.0, far: 200.0 };
     let view_point_a = viewing_transform(&perspective_point_wk_a, &vf);
@@ -121,45 +124,78 @@ fn draw(model: &mut Model) {
     let view_point_g = viewing_transform(&perspective_point_wk_g, &vf);
     let view_point_h = viewing_transform(&perspective_point_wk_h, &vf);
 
-    let offset_x = 100.0;
+    let offset_x = 300.0;
     let offset_y = 300.0;
-    ctx.move_to((perspective_point_wk_a.x + offset_x) as f64, (perspective_point_wk_a.y + offset_y) as f64);
-    ctx.line_to((perspective_point_wk_b.x + offset_x) as f64, (perspective_point_wk_b.y + offset_y) as f64);
-    ctx.stroke();
-    ctx.line_to((perspective_point_wk_c.x + offset_x) as f64, (perspective_point_wk_c.y + offset_y) as f64);
-    ctx.stroke();
-    ctx.line_to((perspective_point_wk_d.x + offset_x) as f64, (perspective_point_wk_d.y + offset_y) as f64);
-    ctx.stroke();
-    ctx.line_to((perspective_point_wk_a.x + offset_x) as f64, (perspective_point_wk_a.y + offset_y) as f64);
-    ctx.stroke();
-
-    ctx.move_to((perspective_point_wk_e.x + offset_x) as f64, (perspective_point_wk_e.y + offset_y) as f64);
-    ctx.line_to((perspective_point_wk_f.x + offset_x) as f64, (perspective_point_wk_f.y + offset_y) as f64);
-    ctx.stroke();
-    ctx.line_to((perspective_point_wk_g.x + offset_x) as f64, (perspective_point_wk_g.y + offset_y) as f64);
-    ctx.stroke();
-    ctx.line_to((perspective_point_wk_h.x + offset_x) as f64, (perspective_point_wk_h.y + offset_y) as f64);
-    ctx.stroke();
-    ctx.line_to((perspective_point_wk_e.x + offset_x) as f64, (perspective_point_wk_e.y + offset_y) as f64);
-    ctx.stroke();
-
-    ctx.move_to((perspective_point_wk_a.x + offset_x) as f64, (perspective_point_wk_a.y + offset_y) as f64);
-    ctx.line_to((perspective_point_wk_e.x + offset_x) as f64, (perspective_point_wk_e.y + offset_y) as f64);
-    ctx.stroke();
-
-    ctx.move_to((perspective_point_wk_b.x + offset_x) as f64, (perspective_point_wk_b.y + offset_y) as f64);
-    ctx.line_to((perspective_point_wk_f.x + offset_x) as f64, (perspective_point_wk_f.y + offset_y) as f64);
-    ctx.stroke();
-
-    ctx.move_to((perspective_point_wk_c.x + offset_x) as f64, (perspective_point_wk_c.y + offset_y) as f64);
-    ctx.line_to((perspective_point_wk_g.x + offset_x) as f64, (perspective_point_wk_g.y + offset_y) as f64);
-    ctx.stroke();
-
-    ctx.move_to((perspective_point_wk_d.x + offset_x) as f64, (perspective_point_wk_d.y + offset_y) as f64);
-    ctx.line_to((perspective_point_wk_h.x + offset_x) as f64, (perspective_point_wk_h.y + offset_y) as f64);
-    ctx.stroke();
-
-    let debugtxt = format!("perspective_point_wk_a x={}, y={}, z={}", perspective_point_wk_a.x, perspective_point_wk_a.y, perspective_point_wk_a.z);
+    let is_visible_abcd = cube.is_visible_surface(CubeSurface::ABCD, &model.camera_pos, &model.camera_x_axis, &model.camera_y_axis, &model.camera_z_axis);
+    let is_visible_abef = cube.is_visible_surface(CubeSurface::ABEF, &model.camera_pos, &model.camera_x_axis, &model.camera_y_axis, &model.camera_z_axis);
+    let is_visible_bcfg = cube.is_visible_surface(CubeSurface::BCFG, &model.camera_pos, &model.camera_x_axis, &model.camera_y_axis, &model.camera_z_axis);
+    let is_visible_cdgh = cube.is_visible_surface(CubeSurface::CDGH, &model.camera_pos, &model.camera_x_axis, &model.camera_y_axis, &model.camera_z_axis);
+    let is_visible_daeh = cube.is_visible_surface(CubeSurface::DAEH, &model.camera_pos, &model.camera_x_axis, &model.camera_y_axis, &model.camera_z_axis);
+    let is_visible_efgh = cube.is_visible_surface(CubeSurface::EFGH, &model.camera_pos, &model.camera_x_axis, &model.camera_y_axis, &model.camera_z_axis);
+    if is_visible_abcd || is_visible_abef {
+        ctx.move_to((view_point_a.x + offset_x) as f64, (view_point_a.y + offset_y) as f64);
+        ctx.line_to((view_point_b.x + offset_x) as f64, (view_point_b.y + offset_y) as f64);
+        ctx.stroke();
+    };
+    if is_visible_abcd || is_visible_bcfg {
+        ctx.move_to((view_point_b.x + offset_x) as f64, (view_point_b.y + offset_y) as f64);
+        ctx.line_to((view_point_c.x + offset_x) as f64, (view_point_c.y + offset_y) as f64);
+        ctx.stroke();
+    };
+    if is_visible_abcd || is_visible_cdgh {
+        ctx.move_to((view_point_c.x + offset_x) as f64, (view_point_c.y + offset_y) as f64);
+        ctx.line_to((view_point_d.x + offset_x) as f64, (view_point_d.y + offset_y) as f64);
+        ctx.stroke();
+    };
+    if is_visible_abcd || is_visible_daeh {
+        ctx.move_to((view_point_d.x + offset_x) as f64, (view_point_d.y + offset_y) as f64);
+        ctx.line_to((view_point_a.x + offset_x) as f64, (view_point_a.y + offset_y) as f64);
+        ctx.stroke();
+    };
+    //
+    if is_visible_abef || is_visible_bcfg {
+        ctx.move_to((view_point_b.x + offset_x) as f64, (view_point_b.y + offset_y) as f64);
+        ctx.line_to((view_point_f.x + offset_x) as f64, (view_point_f.y + offset_y) as f64);
+        ctx.stroke();
+    };
+    if is_visible_bcfg || is_visible_cdgh {
+        ctx.move_to((view_point_c.x + offset_x) as f64, (view_point_c.y + offset_y) as f64);
+        ctx.line_to((view_point_g.x + offset_x) as f64, (view_point_g.y + offset_y) as f64);
+        ctx.stroke();
+    };
+    if is_visible_cdgh || is_visible_daeh {
+        ctx.move_to((view_point_d.x + offset_x) as f64, (view_point_d.y + offset_y) as f64);
+        ctx.line_to((view_point_h.x + offset_x) as f64, (view_point_h.y + offset_y) as f64);
+        ctx.stroke();
+    };
+    if is_visible_daeh || is_visible_abef {
+        ctx.move_to((view_point_a.x + offset_x) as f64, (view_point_a.y + offset_y) as f64);
+        ctx.line_to((view_point_e.x + offset_x) as f64, (view_point_e.y + offset_y) as f64);
+        ctx.stroke();
+    };
+    
+    if is_visible_efgh || is_visible_abef {
+        ctx.move_to((view_point_e.x + offset_x) as f64, (view_point_e.y + offset_y) as f64);
+        ctx.line_to((view_point_f.x + offset_x) as f64, (view_point_f.y + offset_y) as f64);
+        ctx.stroke();
+    };
+    if is_visible_efgh || is_visible_bcfg {
+        ctx.move_to((view_point_f.x + offset_x) as f64, (view_point_f.y + offset_y) as f64);
+        ctx.line_to((view_point_g.x + offset_x) as f64, (view_point_g.y + offset_y) as f64);
+        ctx.stroke();
+    };
+    if is_visible_efgh || is_visible_cdgh {
+        ctx.move_to((view_point_g.x + offset_x) as f64, (view_point_g.y + offset_y) as f64);
+        ctx.line_to((view_point_h.x + offset_x) as f64, (view_point_h.y + offset_y) as f64);
+        ctx.stroke();
+    };
+    if is_visible_efgh || is_visible_daeh {
+        ctx.move_to((view_point_h.x + offset_x) as f64, (view_point_h.y + offset_y) as f64);
+        ctx.line_to((view_point_e.x + offset_x) as f64, (view_point_e.y + offset_y) as f64);
+        ctx.stroke();
+    };
+    let debugtxt = format!("visible abcd={}, abef={}, bcfg={}, cdgh={}, daeh={}, efgh={}",
+        is_visible_abcd, is_visible_abef, is_visible_bcfg, is_visible_cdgh, is_visible_daeh, is_visible_efgh);
     ctx.set_fill_style(&JsValue::from_str("red"));
     ctx.fill_text(&debugtxt, 10.0, 20.0);
 }
@@ -190,7 +226,7 @@ fn view(model: &Model) -> Node<Msg> {
             el_ref(&model.canvas),
             attrs![
                 At::Width => px(800),
-                At::Height => px(400),
+                At::Height => px(500),
             ],
             style![
                 St::Border => "1px solid black",
