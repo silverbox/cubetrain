@@ -132,6 +132,67 @@ fn draw(model: &Model) {
     let is_visible_cdgh = cube.is_visible_surface(CubeSurface::CDGH, &model.camera_pos, &model.camera_x_axis, &model.camera_y_axis, &model.camera_z_axis);
     let is_visible_daeh = cube.is_visible_surface(CubeSurface::DAEH, &model.camera_pos, &model.camera_x_axis, &model.camera_y_axis, &model.camera_z_axis);
     let is_visible_efgh = cube.is_visible_surface(CubeSurface::EFGH, &model.camera_pos, &model.camera_x_axis, &model.camera_y_axis, &model.camera_z_axis);
+    if is_visible_abcd {
+        ctx.begin_path();
+        ctx.move_to((view_point_a.x + offset_x) as f64, (view_point_a.y + offset_y) as f64);
+        ctx.line_to((view_point_b.x + offset_x) as f64, (view_point_b.y + offset_y) as f64);
+        ctx.line_to((view_point_c.x + offset_x) as f64, (view_point_c.y + offset_y) as f64);
+        ctx.line_to((view_point_d.x + offset_x) as f64, (view_point_d.y + offset_y) as f64);
+        ctx.close_path();
+        ctx.set_fill_style(&JsValue::from_str(cube.color_abcd.as_css_str()));
+        ctx.fill();
+    }
+    if is_visible_abef {
+        ctx.begin_path();
+        ctx.move_to((view_point_a.x + offset_x) as f64, (view_point_a.y + offset_y) as f64);
+        ctx.line_to((view_point_b.x + offset_x) as f64, (view_point_b.y + offset_y) as f64);
+        ctx.line_to((view_point_f.x + offset_x) as f64, (view_point_f.y + offset_y) as f64);
+        ctx.line_to((view_point_e.x + offset_x) as f64, (view_point_e.y + offset_y) as f64);
+        ctx.close_path();
+        ctx.set_fill_style(&JsValue::from_str(cube.color_abef.as_css_str()));
+        ctx.fill();
+    }
+    if is_visible_bcfg {
+        ctx.begin_path();
+        ctx.move_to((view_point_b.x + offset_x) as f64, (view_point_b.y + offset_y) as f64);
+        ctx.line_to((view_point_c.x + offset_x) as f64, (view_point_c.y + offset_y) as f64);
+        ctx.line_to((view_point_g.x + offset_x) as f64, (view_point_g.y + offset_y) as f64);
+        ctx.line_to((view_point_f.x + offset_x) as f64, (view_point_f.y + offset_y) as f64);
+        ctx.close_path();
+        ctx.set_fill_style(&JsValue::from_str(cube.color_bcfg.as_css_str()));
+        ctx.fill();
+    }
+    if is_visible_cdgh {
+        ctx.begin_path();
+        ctx.move_to((view_point_c.x + offset_x) as f64, (view_point_c.y + offset_y) as f64);
+        ctx.line_to((view_point_d.x + offset_x) as f64, (view_point_d.y + offset_y) as f64);
+        ctx.line_to((view_point_h.x + offset_x) as f64, (view_point_h.y + offset_y) as f64);
+        ctx.line_to((view_point_g.x + offset_x) as f64, (view_point_g.y + offset_y) as f64);
+        ctx.close_path();
+        ctx.set_fill_style(&JsValue::from_str(cube.color_cdgh.as_css_str()));
+        ctx.fill();
+    }
+    if is_visible_daeh {
+        ctx.begin_path();
+        ctx.move_to((view_point_d.x + offset_x) as f64, (view_point_d.y + offset_y) as f64);
+        ctx.line_to((view_point_a.x + offset_x) as f64, (view_point_a.y + offset_y) as f64);
+        ctx.line_to((view_point_e.x + offset_x) as f64, (view_point_e.y + offset_y) as f64);
+        ctx.line_to((view_point_h.x + offset_x) as f64, (view_point_h.y + offset_y) as f64);
+        ctx.close_path();
+        ctx.set_fill_style(&JsValue::from_str(cube.color_dahe.as_css_str()));
+        ctx.fill();
+    }
+    if is_visible_efgh {
+        ctx.begin_path();
+        ctx.move_to((view_point_e.x + offset_x) as f64, (view_point_e.y + offset_y) as f64);
+        ctx.line_to((view_point_f.x + offset_x) as f64, (view_point_f.y + offset_y) as f64);
+        ctx.line_to((view_point_g.x + offset_x) as f64, (view_point_g.y + offset_y) as f64);
+        ctx.line_to((view_point_h.x + offset_x) as f64, (view_point_h.y + offset_y) as f64);
+        ctx.close_path();
+        ctx.set_fill_style(&JsValue::from_str(cube.color_efgh.as_css_str()));
+        ctx.fill();
+    }
+    //
     if is_visible_abcd || is_visible_abef {
         ctx.move_to((view_point_a.x + offset_x) as f64, (view_point_a.y + offset_y) as f64);
         ctx.line_to((view_point_b.x + offset_x) as f64, (view_point_b.y + offset_y) as f64);
