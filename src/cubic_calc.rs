@@ -129,6 +129,15 @@ pub fn viewing_transform(camera_point: &CameraAxisPoint, vf: &ViewFrustum) -> Vi
   }
 }
 
+pub fn center_point(point_a: &ViewPoint2D, point_b: &ViewPoint2D, point_c: &ViewPoint2D) -> ViewPoint2D {
+  ViewPoint2D {
+    x: (point_a.x + point_b.x + point_c.x) / 3.0 ,
+    y: (point_a.y + point_b.y + point_c.y) / 3.0 ,
+    z: (point_a.z + point_b.z + point_c.z) / 3.0 ,
+    w: (point_a.w + point_b.w + point_c.w) / 3.0
+  }
+}
+
 pub fn get_permil(val: f32) -> i32 {
   (val * 1000.0) as i32
 }
