@@ -47,6 +47,14 @@ pub struct ViewFrustum {
   pub far: f32
 }
 
+pub struct CameraModel {
+  pub pos: CameraVec,
+  pub x_axis: CameraVec,
+  pub y_axis: CameraVec,
+  pub z_axis: CameraVec,
+  pub view_frustum: ViewFrustum
+}
+
 // 平行移動
 pub fn shift(point: &NormPoint, tx: f32, ty: f32, tz: f32) -> NormPoint {
   NormPoint {
@@ -104,17 +112,16 @@ pub fn z_rotate(point: &NormPoint, z_rad: f32) -> NormPoint {
 }
 
 // 透視投影
-pub fn perspective_projection(point: &NormPoint, camera_pos: &CameraVec, camera_x_axis: &CameraVec, 
-  camera_y_axis: &CameraVec, camera_z_axis: &CameraVec) -> CameraAxisPoint {
+pub fn perspective_projection(point: &NormPoint, camera: &CameraModel) -> CameraAxisPoint {
   let camera_vec = CameraVec {
-    x: camera_x_axis.x * camera_pos.x + camera_x_axis.y * camera_pos.y + camera_x_axis.z * camera_pos.z,
-    y: camera_y_axis.x * camera_pos.x + camera_y_axis.y * camera_pos.y + camera_y_axis.z * camera_pos.z,
-    z: camera_z_axis.x * camera_pos.x + camera_z_axis.y * camera_pos.y + camera_z_axis.z * camera_pos.z,
+    x: camera.x_axis.x * camera.pos.x + camera.x_axis.y * camera.pos.y + camera.x_axis.z * camera.pos.z,
+    y: camera.y_axis.x * camera.pos.x + camera.y_axis.y * camera.pos.y + camera.y_axis.z * camera.pos.z,
+    z: camera.z_axis.x * camera.pos.x + camera.z_axis.y * camera.pos.y + camera.z_axis.z * camera.pos.z,
   };
   CameraAxisPoint {
-    x: camera_x_axis.x * point.x + camera_x_axis.y * point.y + camera_x_axis.z * point.z - camera_vec.x,
-    y: camera_y_axis.x * point.x + camera_y_axis.y * point.y + camera_y_axis.z * point.z - camera_vec.y,
-    z: camera_z_axis.x * point.x + camera_z_axis.y * point.y + camera_z_axis.z * point.z - camera_vec.z,
+    x: camera.x_axis.x * point.x + camera.x_axis.y * point.y + camera.x_axis.z * point.z - camera_vec.x,
+    y: camera.y_axis.x * point.x + camera.y_axis.y * point.y + camera.y_axis.z * point.z - camera_vec.y,
+    z: camera.z_axis.x * point.x + camera.z_axis.y * point.y + camera.z_axis.z * point.z - camera_vec.z,
     w: point.w
   }
 }

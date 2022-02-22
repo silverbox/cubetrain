@@ -121,8 +121,8 @@ impl Cube {
   }
 
   // 回転した面の視点からの可視を判断。正方形の３つの点を使った三角形で処理する
-  pub fn is_visible_surface(&self, surface: CubeSurface, camera_pos: &CameraVec,
-      camera_x_axis: &CameraVec, camera_y_axis: &CameraVec, camera_z_axis: &CameraVec) -> bool {
+  pub fn is_visible_surface(&self, surface: CubeSurface, camera: &CameraModel) -> bool {
+    // , camera_pos: &CameraVec, camera_x_axis: &CameraVec, camera_y_axis: &CameraVec, camera_z_axis: &CameraVec
     let point_list = self.get_surface_point_list(surface);
 
     // 回転済み絶対座標
@@ -130,12 +130,9 @@ impl Cube {
     let abs_p2 = self.get_norm_point(point_list[1]);
     let abs_p3 = self.get_norm_point(point_list[2]);
     // カメラ視点座標
-    let rot_p1 = perspective_projection(&abs_p1, camera_pos,
-      camera_x_axis, camera_y_axis, camera_z_axis);
-    let rot_p2 = perspective_projection(&abs_p2, camera_pos,
-      camera_x_axis, camera_y_axis, camera_z_axis);
-    let rot_p3 = perspective_projection(&abs_p3, camera_pos,
-      camera_x_axis, camera_y_axis, camera_z_axis);
+    let rot_p1 = perspective_projection(&abs_p1, camera);
+    let rot_p2 = perspective_projection(&abs_p2, camera);
+    let rot_p3 = perspective_projection(&abs_p3, camera);
 
     // 法線ベクトル
     let normal_vec = CameraVec {

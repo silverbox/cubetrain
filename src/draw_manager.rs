@@ -1,0 +1,123 @@
+#![allow(clippy::wildcard_imports)]
+
+use seed::{prelude::*, *};
+use web_sys::HtmlCanvasElement;
+
+use super::cube::CubeColor;
+use super::cube::CubeSurface;
+use super::cube::Cube;
+
+use super::cubic_calc::NormPoint;
+use super::cubic_calc::CameraAxisPoint;
+use super::cubic_calc::CameraVec;
+use super::cubic_calc::CameraModel;
+use super::cubic_calc::ViewFrustum;
+use super::cubic_calc::ViewPoint2D;
+use super::cubic_calc::perspective_projection;
+use super::cubic_calc::viewing_transform;
+
+pub fn draw_cube(canvas_element: &HtmlCanvasElement, cube: &Cube, camera: &CameraModel) {
+
+    let ctx = seed::canvas_context_2d(canvas_element);
+
+    // clear canvas
+    ctx.begin_path();
+    ctx.clear_rect(0., 0., 800., 800.);
+
+    // 立方体描画
+    let view_point_a = get_view_point("a", cube, camera);
+    let view_point_b = get_view_point("b", cube, camera);
+    let view_point_c = get_view_point("c", cube, camera);
+    let view_point_d = get_view_point("d", cube, camera);
+    let view_point_e = get_view_point("e", cube, camera);
+    let view_point_f = get_view_point("f", cube, camera);
+    let view_point_g = get_view_point("g", cube, camera);
+    let view_point_h = get_view_point("h", cube, camera);
+
+    let offset_x = 300.0;
+    let offset_y = 300.0;
+    let is_visible_abcd = cube.is_visible_surface(CubeSurface::ABCD, camera);
+    let is_visible_abef = cube.is_visible_surface(CubeSurface::ABEF, camera);
+    let is_visible_bcfg = cube.is_visible_surface(CubeSurface::BCFG, camera);
+    let is_visible_cdgh = cube.is_visible_surface(CubeSurface::CDGH, camera);
+    let is_visible_daeh = cube.is_visible_surface(CubeSurface::DAEH, camera);
+    let is_visible_efgh = cube.is_visible_surface(CubeSurface::EFGH, camera);
+    if is_visible_abcd {
+        ctx.begin_path();
+        ctx.move_to((view_point_a.x + offset_x) as f64, (view_point_a.y + offset_y) as f64);
+        ctx.line_to((view_point_b.x + offset_x) as f64, (view_point_b.y + offset_y) as f64);
+        ctx.line_to((view_point_c.x + offset_x) as f64, (view_point_c.y + offset_y) as f64);
+        ctx.line_to((view_point_d.x + offset_x) as f64, (view_point_d.y + offset_y) as f64);
+        ctx.close_path();
+        ctx.set_fill_style(&JsValue::from_str(cube.color_abcd.as_css_str()));
+        ctx.fill();
+        ctx.stroke();
+    }
+    if is_visible_abef {
+        ctx.begin_path();
+        ctx.move_to((view_point_a.x + offset_x) as f64, (view_point_a.y + offset_y) as f64);
+        ctx.line_to((view_point_b.x + offset_x) as f64, (view_point_b.y + offset_y) as f64);
+        ctx.line_to((view_point_f.x + offset_x) as f64, (view_point_f.y + offset_y) as f64);
+        ctx.line_to((view_point_e.x + offset_x) as f64, (view_point_e.y + offset_y) as f64);
+        ctx.close_path();
+        ctx.set_fill_style(&JsValue::from_str(cube.color_abef.as_css_str()));
+        ctx.fill();
+        ctx.stroke();
+    }
+    if is_visible_bcfg {
+        ctx.begin_path();
+        ctx.move_to((view_point_b.x + offset_x) as f64, (view_point_b.y + offset_y) as f64);
+        ctx.line_to((view_point_c.x + offset_x) as f64, (view_point_c.y + offset_y) as f64);
+        ctx.line_to((view_point_g.x + offset_x) as f64, (view_point_g.y + offset_y) as f64);
+        ctx.line_to((view_point_f.x + offset_x) as f64, (view_point_f.y + offset_y) as f64);
+        ctx.close_path();
+        ctx.set_fill_style(&JsValue::from_str(cube.color_bcfg.as_css_str()));
+        ctx.fill();
+        ctx.stroke();
+    }
+    if is_visible_cdgh {
+        ctx.begin_path();
+        ctx.move_to((view_point_c.x + offset_x) as f64, (view_point_c.y + offset_y) as f64);
+        ctx.line_to((view_point_d.x + offset_x) as f64, (view_point_d.y + offset_y) as f64);
+        ctx.line_to((view_point_h.x + offset_x) as f64, (view_point_h.y + offset_y) as f64);
+        ctx.line_to((view_point_g.x + offset_x) as f64, (view_point_g.y + offset_y) as f64);
+        ctx.close_path();
+        ctx.set_fill_style(&JsValue::from_str(cube.color_cdgh.as_css_str()));
+        ctx.stroke();
+        ctx.fill();
+    }
+    if is_visible_daeh {
+        ctx.begin_path();
+        ctx.move_to((view_point_d.x + offset_x) as f64, (view_point_d.y + offset_y) as f64);
+        ctx.line_to((view_point_a.x + offset_x) as f64, (view_point_a.y + offset_y) as f64);
+        ctx.line_to((view_point_e.x + offset_x) as f64, (view_point_e.y + offset_y) as f64);
+        ctx.line_to((view_point_h.x + offset_x) as f64, (view_point_h.y + offset_y) as f64);
+        ctx.close_path();
+        ctx.set_fill_style(&JsValue::from_str(cube.color_dahe.as_css_str()));
+        ctx.fill();
+        ctx.stroke();
+    }
+    if is_visible_efgh {
+        ctx.begin_path();
+        ctx.move_to((view_point_e.x + offset_x) as f64, (view_point_e.y + offset_y) as f64);
+        ctx.line_to((view_point_f.x + offset_x) as f64, (view_point_f.y + offset_y) as f64);
+        ctx.line_to((view_point_g.x + offset_x) as f64, (view_point_g.y + offset_y) as f64);
+        ctx.line_to((view_point_h.x + offset_x) as f64, (view_point_h.y + offset_y) as f64);
+        ctx.close_path();
+        ctx.set_fill_style(&JsValue::from_str(cube.color_efgh.as_css_str()));
+        ctx.fill();
+        ctx.stroke();
+    }
+
+    let debugtxt = format!("visible abcd={}, abef={}, bcfg={}, cdgh={}, daeh={}, efgh={}",
+        is_visible_abcd, is_visible_abef, is_visible_bcfg, is_visible_cdgh, is_visible_daeh, is_visible_efgh);
+    ctx.set_fill_style(&JsValue::from_str("red"));
+    ctx.fill_text(&debugtxt, 10.0, 20.0);
+
+}
+
+fn get_view_point(point_name: &str, cube: &Cube, camera: &CameraModel) -> ViewPoint2D {
+
+  let perspective_point_wk = perspective_projection(&cube.get_abs_point(point_name), camera);
+  viewing_transform(&perspective_point_wk, &camera.view_frustum)
+}
