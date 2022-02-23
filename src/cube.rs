@@ -98,12 +98,18 @@ impl Default for Cube {
       pg: NormPoint {x:  1.0, y: -1.0, z: -1.0, w: 1.0},
       ph: NormPoint {x: -1.0, y: -1.0, z: -1.0, w: 1.0},
       //
-      color_abcd: CubeColor::White,
-      color_abef: CubeColor::Lime,
-      color_bcfg: CubeColor::Red,
-      color_cdgh: CubeColor::Blue,
-      color_dahe: CubeColor::Orange,
-      color_efgh: CubeColor::Yellow,
+      color_abcd: CubeColor::Black,
+      color_abef: CubeColor::Black,
+      color_bcfg: CubeColor::Black,
+      color_cdgh: CubeColor::Black,
+      color_dahe: CubeColor::Black,
+      color_efgh: CubeColor::Black,
+      // color_abcd: CubeColor::White,
+      // color_abef: CubeColor::Lime,
+      // color_bcfg: CubeColor::Red,
+      // color_cdgh: CubeColor::Blue,
+      // color_dahe: CubeColor::Orange,
+      // color_efgh: CubeColor::Yellow,
       //
       x_axis_rotate_rad: 0.0,
       y_axis_rotate_rad: 0.0,
@@ -203,126 +209,212 @@ impl Cube {
   }
 }
 
+pub struct CubeSet {
+  white_center: Cube,
+  white_red_edge: Cube,
+  white_blue_edge: Cube,
+  white_lime_edge: Cube,
+  white_orange_edge: Cube,
+  white_red_blue_corner: Cube,
+  white_blue_orange_corner: Cube,
+  white_orange_lime_corner: Cube,
+  white_lime_red_corner: Cube,
 
-// struct CubeSet {
-//   white_center: Cube,
-//   white_red_edge: Cube,
-//   white_blue_edge: Cube,
-//   white_lime_edge: Cube,
-//   white_orange_edge: Cube,
-//   white_red_blue_corner: Cube,
-//   white_blue_orange_corner: Cube,
-//   white_orange_lime_corner: Cube,
-//   white_lime_red_corner: Cube,
+  yellow_center: Cube,
+  yellow_red_edge: Cube,
+  yellow_lime_edge: Cube,
+  yellow_orange_edge: Cube,
+  yellow_blue_edge: Cube,
+  yellow_blue_red_corner: Cube,
+  yellow_red_lime_corner: Cube,
+  yellow_lime_orange_corner: Cube,
+  yellow_orange_blue_corner: Cube,
 
-//   yellow_center: Cube,
-//   yellow_red_edge: Cube,
-//   yellow_lime_edge: Cube,
-//   yellow_orange_edge: Cube,
-//   yellow_blue_edge: Cube,
-//   yellow_blue_red_corner: Cube,
-//   yellow_red_lime_corner: Cube,
-//   yellow_lime_orange_corner: Cube,
-//   yellow_orange_blue_corner: Cube,
+  blue_center: Cube,
+  red_center: Cube,
+  orange_center: Cube,
+  lime_center: Cube,
 
-//   blue_center: Cube,
-//   red_center: Cube,
-//   orange_center: Cube,
-//   lime_center: Cube,
-
-//   blue_red_edge: Cube,
-//   red_lime_edge: Cube,
-//   lime_orange_edge: Cube,
-//   orange_blue_edge: Cube
-// }
+  blue_red_edge: Cube,
+  red_lime_edge: Cube,
+  lime_orange_edge: Cube,
+  orange_blue_edge: Cube
+}
 
 // /**
-//  白上面、赤正面、青右側面。キューブの辺の長さを100として、キューブ集合体の中心座標が(0,0,0)
-
+//  白上面、ライム正面、赤右側面。キューブの辺の長さを100として、キューブ集合体の中心座標が(0,0,0)
 //  */
-// impl Default for CubeSet {
-//   fn default() -> Self {
-//       Self {
-//         white_center: Cube {
-//           pa: Point {x: -50.0, y: -50.0, z: 150.0},
-//           pb: Point {x:  50.0, y: -50.0, z: 150.0},
-//           pc: Point {x:  50.0, y:  50.0, z: 150.0},
-//           pd: Point {x: -50.0, y:  50.0, z: 150.0},
-//           pe: Point {x: -50.0, y: -50.0, z: 150.0},
-//           pf: Point {x:  50.0, y: -50.0, z: 150.0},
-//           pg: Point {x:  50.0, y:  50.0, z: 150.0},
-//           ph: Point {x: -50.0, y:  50.0, z: 150.0},
-//           //
-//           color_abcd: CubeColor::White,
-//           color_abef: CubeColor::Black,
-//           color_bcfg: CubeColor::Black,
-//           color_cdgh: CubeColor::Black,
-//           color_dahe: CubeColor::Black,
-//           color_efgh: CubeColor::Black,
-//         },
-//         white_red_edge: Cube {
-//           pa: Point {x: -50.0, y: -150.0, z: 150.0},
-//           pb: Point {x:  50.0, y: -150.0, z: 150.0},
-//           pc: Point {x:  50.0, y:  -50.0, z: 150.0},
-//           pd: Point {x: -50.0, y:  -50.0, z: 150.0},
-//           pe: Point {x: -50.0, y: -150.0, z: 150.0},
-//           pf: Point {x:  50.0, y: -150.0, z: 150.0},
-//           pg: Point {x:  50.0, y:  -50.0, z: 150.0},
-//           ph: Point {x: -50.0, y:  -50.0, z: 150.0},
-//           //
-//           color_abcd: CubeColor::White,
-//           color_abef: CubeColor::Red,
-//           color_bcfg: CubeColor::Black,
-//           color_cdgh: CubeColor::Black,
-//           color_dahe: CubeColor::Black,
-//           color_efgh: CubeColor::Black,
-//         },
-//         white_blue_edge: Cube {
-//           pa: Point {x:  50.0, y: -50.0, z: 150.0},
-//           pb: Point {x: 150.0, y: -50.0, z: 150.0},
-//           pc: Point {x: 150.0, y:  50.0, z: 150.0},
-//           pd: Point {x:  50.0, y:  50.0, z: 150.0},
-//           pe: Point {x:  50.0, y: -50.0, z: 150.0},
-//           pf: Point {x: 150.0, y: -50.0, z: 150.0},
-//           pg: Point {x: 150.0, y:  50.0, z: 150.0},
-//           ph: Point {x:  50.0, y:  50.0, z: 150.0},
-//           //
-//           color_abcd: CubeColor::White,
-//           color_abef: CubeColor::Black,
-//           color_bcfg: CubeColor::Blue,
-//           color_cdgh: CubeColor::Black,
-//           color_dahe: CubeColor::Black,
-//           color_efgh: CubeColor::Black,
-//         },
-//         white_lime_edge: Cube,
-//         white_orange_edge: Cube,
-//         white_red_blue_corner: Cube,
-//         white_blue_orange_corner: Cube,
-//         white_orange_lime_corner: Cube,
-//         white_lime_red_corner: Cube,
-      
-//         yellow_center: Cube,
-//         yellow_red_edge: Cube,
-//         yellow_lime_edge: Cube,
-//         yellow_orange_edge: Cube,
-//         yellow_blue_edge: Cube,
-//         yellow_blue_red_corner: Cube,
-//         yellow_red_lime_corner: Cube,
-//         yellow_lime_orange_corner: Cube,
-//         yellow_orange_blue_corner: Cube,
-      
-//         blue_center: Cube,
-//         red_center: Cube,
-//         orange_center: Cube,
-//         lime_center: Cube,
-      
-//         blue_red_edge: Cube,
-//         red_lime_edge: Cube,
-//         lime_orange_edge: Cube,
-//         orange_blue_edge: Cube
-//       }
-//   }
-// }
+impl Default for CubeSet {
+  fn default() -> Self {
+    Self {
+      white_center: Cube {
+        center_point: NormPoint {x: 0.0, y: 100.0, z: 0.0, w: 1.0},
+        color_abcd: CubeColor::White,
+        ..Default::default()
+      },
+      white_red_edge: Cube {
+        center_point: NormPoint {x: 100.0, y: 100.0, z: 0.0, w: 1.0},
+        color_abcd: CubeColor::White,
+        color_bcfg: CubeColor::Red,
+        ..Default::default()
+      },
+      white_blue_edge: Cube {
+        center_point: NormPoint {x: 0.0, y: 100.0, z: -100.0, w: 1.0},
+        color_abcd: CubeColor::White,
+        color_cdgh: CubeColor::Blue,
+        ..Default::default()
+      },
+      white_lime_edge: Cube {
+        center_point: NormPoint {x: 0.0, y: 100.0, z: 100.0, w: 1.0},
+        color_abcd: CubeColor::White,
+        color_abef: CubeColor::Lime,
+        ..Default::default()
+      },
+      white_orange_edge: Cube {
+        center_point: NormPoint {x: -100.0, y: 100.0, z: 0.0, w: 1.0},
+        color_abcd: CubeColor::White,
+        color_dahe: CubeColor::Orange,
+        ..Default::default()
+      },
+      //
+      white_red_blue_corner: Cube {
+        center_point: NormPoint {x: 100.0, y: 100.0, z: -100.0, w: 1.0},
+        color_abcd: CubeColor::White,
+        color_bcfg: CubeColor::Red,
+        color_cdgh: CubeColor::Blue,
+        ..Default::default()
+      },
+      white_blue_orange_corner: Cube {
+        center_point: NormPoint {x: -100.0, y: 100.0, z: -100.0, w: 1.0},
+        color_abcd: CubeColor::White,
+        color_cdgh: CubeColor::Blue,
+        color_dahe: CubeColor::Orange,
+        ..Default::default()
+      },
+      white_orange_lime_corner: Cube {
+        center_point: NormPoint {x: -100.0, y: 100.0, z: 100.0, w: 1.0},
+        color_abcd: CubeColor::White,
+        color_abef: CubeColor::Lime,
+        color_dahe: CubeColor::Orange,
+        ..Default::default()
+      },
+      white_lime_red_corner: Cube {
+        center_point: NormPoint {x: 100.0, y: 100.0, z: 100.0, w: 1.0},
+        //
+        color_abcd: CubeColor::White,
+        color_abef: CubeColor::Lime,
+        color_bcfg: CubeColor::Red,
+        ..Default::default()
+      },
+      //
+      yellow_center: Cube {
+        center_point: NormPoint {x: 0.0, y: -100.0, z: 0.0, w: 1.0},
+        color_efgh: CubeColor::Yellow,
+        ..Default::default()
+      },
+      //
+      yellow_red_edge: Cube {
+        center_point: NormPoint {x: 100.0, y: -100.0, z: 0.0, w: 1.0},
+        color_bcfg: CubeColor::Red,
+        color_efgh: CubeColor::Yellow,
+        ..Default::default()
+      },
+      yellow_lime_edge: Cube {
+        center_point: NormPoint {x: 0.0, y: -100.0, z: 100.0, w: 1.0},
+        color_abef: CubeColor::Lime,
+        color_efgh: CubeColor::Yellow,
+        ..Default::default()
+      },
+      yellow_orange_edge: Cube {
+        center_point: NormPoint {x: -100.0, y: -100.0, z: 0.0, w: 1.0},
+        color_dahe: CubeColor::Orange,
+        color_efgh: CubeColor::Yellow,
+        ..Default::default()
+      },
+      yellow_blue_edge: Cube {
+        center_point: NormPoint {x: 0.0, y: -100.0, z: -100.0, w: 1.0},
+        color_cdgh: CubeColor::Blue,
+        color_efgh: CubeColor::Yellow,
+        ..Default::default()
+      },
+      //
+      yellow_blue_red_corner: Cube {
+        center_point: NormPoint {x: 100.0, y: -100.0, z: -100.0, w: 1.0},
+        color_bcfg: CubeColor::Red,
+        color_cdgh: CubeColor::Blue,
+        color_efgh: CubeColor::Yellow,
+        ..Default::default()
+      },
+      yellow_red_lime_corner: Cube {
+        center_point: NormPoint {x: 100.0, y: -100.0, z: 100.0, w: 1.0},
+        color_abef: CubeColor::Lime,
+        color_bcfg: CubeColor::Red,
+        color_efgh: CubeColor::Yellow,
+        ..Default::default()
+      },
+      yellow_lime_orange_corner: Cube {
+        center_point: NormPoint {x: -100.0, y: -100.0, z: 100.0, w: 1.0},
+        color_abef: CubeColor::Lime,
+        color_dahe: CubeColor::Orange,
+        color_efgh: CubeColor::Yellow,
+        ..Default::default()
+      },
+      yellow_orange_blue_corner: Cube {
+        center_point: NormPoint {x: -100.0, y: -100.0, z: -100.0, w: 1.0},
+        color_cdgh: CubeColor::Blue,
+        color_dahe: CubeColor::Orange,
+        color_efgh: CubeColor::Black,
+        ..Default::default()
+      },
+      //
+      blue_center: Cube {
+        center_point: NormPoint {x: 0.0, y: 0.0, z: -100.0, w: 1.0},
+        color_cdgh: CubeColor::Blue,
+        ..Default::default()
+      },
+      red_center: Cube {
+        center_point: NormPoint {x: 100.0, y: 0.0, z: 0.0, w: 1.0},
+        color_bcfg: CubeColor::Red,
+        ..Default::default()
+      },
+      orange_center: Cube {
+        center_point: NormPoint {x: -100.0, y: 0.0, z: 0.0, w: 1.0},
+        color_dahe: CubeColor::Orange,
+        ..Default::default()
+      },
+      lime_center: Cube {
+        center_point: NormPoint {x: 0.0, y: 0.0, z: 100.0, w: 1.0},
+        color_abef: CubeColor::Lime,
+        ..Default::default()
+      },
+      //
+      blue_red_edge: Cube {
+        center_point: NormPoint {x: 100.0, y: 0.0, z: -100.0, w: 1.0},
+        color_bcfg: CubeColor::Red,
+        color_cdgh: CubeColor::Blue,
+        ..Default::default()
+      },
+      red_lime_edge: Cube {
+        center_point: NormPoint {x: 100.0, y: 0.0, z: 100.0, w: 1.0},
+        color_abef: CubeColor::Lime,
+        color_bcfg: CubeColor::Red,
+        ..Default::default()
+      },
+      lime_orange_edge: Cube {
+        center_point: NormPoint {x: -100.0, y: 0.0, z: 100.0, w: 1.0},
+        color_abef: CubeColor::Lime,
+        color_dahe: CubeColor::Orange,
+        ..Default::default()
+      },
+      orange_blue_edge: Cube {
+        center_point: NormPoint {x: -100.0, y: 0.0, z: -100.0, w: 1.0},
+        color_cdgh: CubeColor::Blue,
+        color_dahe: CubeColor::Orange,
+        ..Default::default()
+      },
+    }
+  }
+}
 
 // ------ ------
 //     Test

@@ -61,8 +61,8 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
         Msg::RandomRotate => model.counter += 1,
         Msg::Rendered => {
-            model.cube.rotate_test();
             draw(model);
+            model.cube.rotate_test();
             // We want to call `.skip` to prevent infinite loop.
             // (However infinite loops are useful for animations.)
             orders.after_next_render(|_| Msg::Rendered).skip();
