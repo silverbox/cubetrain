@@ -26,15 +26,8 @@ fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
     orders.after_next_render(|_| Msg::Rendered);
     Model { 
         counter: 0,
-        // 中心と点Bを結ぶ方向から中心にカメラを向ける形
-        camera: CameraModel {
-            pos: CameraVec { x: 200.0, y: 200.0, z: 200.0 },
-            x_axis: CameraVec { x: -0.706, y:  0.0  , z:  0.706 },
-            y_axis: CameraVec { x: -0.405, y:  0.810, z: -0.405 }, // vec X * vec Z
-            z_axis: CameraVec { x: -0.577, y: -0.577, z: -0.577 },
-            view_frustum: ViewFrustum { left: 200.0, right: -200.0, top: 200.0, bottom: -200.0, near: 100.0, far: 200.0 }
-        },
         cube: Cube::default(),
+        camera: CameraModel::default(),
         canvas: ElRef::<HtmlCanvasElement>::default(),
     }
 }

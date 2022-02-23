@@ -99,10 +99,10 @@ impl Default for Cube {
       ph: NormPoint {x: -1.0, y: -1.0, z: -1.0, w: 1.0},
       //
       color_abcd: CubeColor::White,
-      color_abef: CubeColor::Red,
-      color_bcfg: CubeColor::Blue,
-      color_cdgh: CubeColor::Orange,
-      color_dahe: CubeColor::Lime,
+      color_abef: CubeColor::Lime,
+      color_bcfg: CubeColor::Red,
+      color_cdgh: CubeColor::Blue,
+      color_dahe: CubeColor::Orange,
       color_efgh: CubeColor::Yellow,
       //
       x_axis_rotate_rad: 0.0,
@@ -148,7 +148,7 @@ impl Cube {
       z: (rot_p1.z + rot_p2.z + rot_p3.z) / 3.0
     };
 
-    (normal_vec.x * center_vec.x) + (normal_vec.y * center_vec.y) + (normal_vec.z * center_vec.z) > 0.0
+    (normal_vec.x * center_vec.x) + (normal_vec.y * center_vec.y) + (normal_vec.z * center_vec.z) < 0.0
   }
 
   fn adjust_rad(rad: f32, rad_step: f32) -> f32 {
@@ -200,53 +200,6 @@ impl Cube {
 
   pub fn rotate_test(&mut self) {
     self.rotate(ROTATE_STEP, 0.0, 0.0, ROTATE_STEP);
-  }
-}
-
-// ------ ------
-//     Test
-// ------ ------
-
-#[cfg(test)]
-mod tests {
-  use super::*;
-
-  #[test]
-  fn rotate_test() {
-    let testcube = &mut Cube::default();
-
-    let point_a1 = testcube.get_abs_point("a");
-    assert_eq!(point_a1.x, -100.0);
-    assert_eq!(point_a1.y,  100.0);
-
-    testcube.rotate_test();
-    assert_eq!(testcube.x_axis_rotate_rad, ROTATE_STEP);
-
-    let point_a2 = testcube.get_abs_point("a");
-    let obj_norm_point2 = testcube.get_norm_point(&point_a2);
-    assert_eq!(point_a2.x as i32, -100);
-
-    testcube.rotate_test();
-    testcube.rotate_test();
-    testcube.rotate_test();
-    let point_a3 = testcube.get_abs_point("a");
-    assert_eq!(point_a3.z as i32,  141);
-  }
-
-  #[test]
-  fn visible_surface_test() {
-    let testcube = &mut Cube::default();
-    let camera_pos = CameraVec { x: 200.0, y: 200.0, z: 200.0 };
-    let camera_x_axis = CameraVec { x: -0.706, y:  0.0  , z:  0.706 };
-    let camera_y_axis = CameraVec { x: -0.405, y: -0.810, z: -0.405 };
-    let camera_z_axis = CameraVec { x: -0.577, y: -0.577, z: -0.577 };
-
-    assert_eq!(testcube.is_visible_surface(CubeSurface::ABCD, &camera_pos, &camera_x_axis, &camera_y_axis, &camera_z_axis), true);
-    assert_eq!(testcube.is_visible_surface(CubeSurface::ABEF, &camera_pos, &camera_x_axis, &camera_y_axis, &camera_z_axis), true);
-    assert_eq!(testcube.is_visible_surface(CubeSurface::BCFG, &camera_pos, &camera_x_axis, &camera_y_axis, &camera_z_axis), true);
-    assert_eq!(testcube.is_visible_surface(CubeSurface::CDGH, &camera_pos, &camera_x_axis, &camera_y_axis, &camera_z_axis), false);
-    assert_eq!(testcube.is_visible_surface(CubeSurface::DAEH, &camera_pos, &camera_x_axis, &camera_y_axis, &camera_z_axis), false);
-    assert_eq!(testcube.is_visible_surface(CubeSurface::EFGH, &camera_pos, &camera_x_axis, &camera_y_axis, &camera_z_axis), false);
   }
 }
 
@@ -370,3 +323,50 @@ mod tests {
 //       }
 //   }
 // }
+
+// ------ ------
+//     Test
+// ------ ------
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn rotate_test() {
+    let testcube = &mut Cube::default();
+
+    let point_a1 = testcube.get_abs_point("a");
+    assert_eq!(point_a1.x, -100.0);
+    assert_eq!(point_a1.y,  100.0);
+
+    testcube.rotate_test();
+    assert_eq!(testcube.x_axis_rotate_rad, ROTATE_STEP);
+
+    let point_a2 = testcube.get_abs_point("a");
+    let obj_norm_point2 = testcube.get_norm_point(&point_a2);
+    assert_eq!(point_a2.x as i32, -100);
+
+    testcube.rotate_test();
+    testcube.rotate_test();
+    testcube.rotate_test();
+    let point_a3 = testcube.get_abs_point("a");
+    assert_eq!(point_a3.x as i32, -100);
+    assert_eq!(point_a3.y as i32,    0);
+    assert_eq!(point_a3.z as i32,  141);
+  }
+
+  #[test]
+  fn visible_surface_test() {
+    let testcube = &Cube::default();
+    let camera = &CameraModel::default();
+
+    assert_eq!(testcube.is_visible_surface(CubeSurface::ABCD, &camera), true);
+    assert_eq!(testcube.is_visible_surface(CubeSurface::ABEF, &camera), true);
+    assert_eq!(testcube.is_visible_surface(CubeSurface::BCFG, &camera), true);
+    assert_eq!(testcube.is_visible_surface(CubeSurface::CDGH, &camera), false);
+    assert_eq!(testcube.is_visible_surface(CubeSurface::DAEH, &camera), false);
+    assert_eq!(testcube.is_visible_surface(CubeSurface::EFGH, &camera), false);
+  }
+}
+

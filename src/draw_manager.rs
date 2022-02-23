@@ -44,10 +44,10 @@ pub fn draw_cube(canvas_element: &HtmlCanvasElement, cube: &Cube, camera: &Camer
     let is_visible_efgh = cube.is_visible_surface(CubeSurface::EFGH, camera);
     if is_visible_abcd {
         ctx.begin_path();
-        ctx.move_to((view_point_a.x + offset_x) as f64, (view_point_a.y + offset_y) as f64);
-        ctx.line_to((view_point_b.x + offset_x) as f64, (view_point_b.y + offset_y) as f64);
-        ctx.line_to((view_point_c.x + offset_x) as f64, (view_point_c.y + offset_y) as f64);
-        ctx.line_to((view_point_d.x + offset_x) as f64, (view_point_d.y + offset_y) as f64);
+        ctx.move_to((view_point_a.x + offset_x) as f64, (offset_y - view_point_a.y) as f64);
+        ctx.line_to((view_point_b.x + offset_x) as f64, (offset_y - view_point_b.y) as f64);
+        ctx.line_to((view_point_c.x + offset_x) as f64, (offset_y - view_point_c.y) as f64);
+        ctx.line_to((view_point_d.x + offset_x) as f64, (offset_y - view_point_d.y) as f64);
         ctx.close_path();
         ctx.set_fill_style(&JsValue::from_str(cube.color_abcd.as_css_str()));
         ctx.fill();
@@ -55,10 +55,10 @@ pub fn draw_cube(canvas_element: &HtmlCanvasElement, cube: &Cube, camera: &Camer
     }
     if is_visible_abef {
         ctx.begin_path();
-        ctx.move_to((view_point_a.x + offset_x) as f64, (view_point_a.y + offset_y) as f64);
-        ctx.line_to((view_point_b.x + offset_x) as f64, (view_point_b.y + offset_y) as f64);
-        ctx.line_to((view_point_f.x + offset_x) as f64, (view_point_f.y + offset_y) as f64);
-        ctx.line_to((view_point_e.x + offset_x) as f64, (view_point_e.y + offset_y) as f64);
+        ctx.move_to((view_point_a.x + offset_x) as f64, (offset_y - view_point_a.y) as f64);
+        ctx.line_to((view_point_b.x + offset_x) as f64, (offset_y - view_point_b.y) as f64);
+        ctx.line_to((view_point_f.x + offset_x) as f64, (offset_y - view_point_f.y) as f64);
+        ctx.line_to((view_point_e.x + offset_x) as f64, (offset_y - view_point_e.y) as f64);
         ctx.close_path();
         ctx.set_fill_style(&JsValue::from_str(cube.color_abef.as_css_str()));
         ctx.fill();
@@ -66,10 +66,10 @@ pub fn draw_cube(canvas_element: &HtmlCanvasElement, cube: &Cube, camera: &Camer
     }
     if is_visible_bcfg {
         ctx.begin_path();
-        ctx.move_to((view_point_b.x + offset_x) as f64, (view_point_b.y + offset_y) as f64);
-        ctx.line_to((view_point_c.x + offset_x) as f64, (view_point_c.y + offset_y) as f64);
-        ctx.line_to((view_point_g.x + offset_x) as f64, (view_point_g.y + offset_y) as f64);
-        ctx.line_to((view_point_f.x + offset_x) as f64, (view_point_f.y + offset_y) as f64);
+        ctx.move_to((view_point_b.x + offset_x) as f64, (offset_y - view_point_b.y) as f64);
+        ctx.line_to((view_point_c.x + offset_x) as f64, (offset_y - view_point_c.y) as f64);
+        ctx.line_to((view_point_g.x + offset_x) as f64, (offset_y - view_point_g.y) as f64);
+        ctx.line_to((view_point_f.x + offset_x) as f64, (offset_y - view_point_f.y) as f64);
         ctx.close_path();
         ctx.set_fill_style(&JsValue::from_str(cube.color_bcfg.as_css_str()));
         ctx.fill();
@@ -77,10 +77,10 @@ pub fn draw_cube(canvas_element: &HtmlCanvasElement, cube: &Cube, camera: &Camer
     }
     if is_visible_cdgh {
         ctx.begin_path();
-        ctx.move_to((view_point_c.x + offset_x) as f64, (view_point_c.y + offset_y) as f64);
-        ctx.line_to((view_point_d.x + offset_x) as f64, (view_point_d.y + offset_y) as f64);
-        ctx.line_to((view_point_h.x + offset_x) as f64, (view_point_h.y + offset_y) as f64);
-        ctx.line_to((view_point_g.x + offset_x) as f64, (view_point_g.y + offset_y) as f64);
+        ctx.move_to((view_point_c.x + offset_x) as f64, (offset_y - view_point_c.y) as f64);
+        ctx.line_to((view_point_d.x + offset_x) as f64, (offset_y - view_point_d.y) as f64);
+        ctx.line_to((view_point_h.x + offset_x) as f64, (offset_y - view_point_h.y) as f64);
+        ctx.line_to((view_point_g.x + offset_x) as f64, (offset_y - view_point_g.y) as f64);
         ctx.close_path();
         ctx.set_fill_style(&JsValue::from_str(cube.color_cdgh.as_css_str()));
         ctx.stroke();
@@ -88,10 +88,10 @@ pub fn draw_cube(canvas_element: &HtmlCanvasElement, cube: &Cube, camera: &Camer
     }
     if is_visible_daeh {
         ctx.begin_path();
-        ctx.move_to((view_point_d.x + offset_x) as f64, (view_point_d.y + offset_y) as f64);
-        ctx.line_to((view_point_a.x + offset_x) as f64, (view_point_a.y + offset_y) as f64);
-        ctx.line_to((view_point_e.x + offset_x) as f64, (view_point_e.y + offset_y) as f64);
-        ctx.line_to((view_point_h.x + offset_x) as f64, (view_point_h.y + offset_y) as f64);
+        ctx.move_to((view_point_d.x + offset_x) as f64, (offset_y - view_point_d.y) as f64);
+        ctx.line_to((view_point_a.x + offset_x) as f64, (offset_y - view_point_a.y) as f64);
+        ctx.line_to((view_point_e.x + offset_x) as f64, (offset_y - view_point_e.y) as f64);
+        ctx.line_to((view_point_h.x + offset_x) as f64, (offset_y - view_point_h.y) as f64);
         ctx.close_path();
         ctx.set_fill_style(&JsValue::from_str(cube.color_dahe.as_css_str()));
         ctx.fill();
@@ -99,10 +99,10 @@ pub fn draw_cube(canvas_element: &HtmlCanvasElement, cube: &Cube, camera: &Camer
     }
     if is_visible_efgh {
         ctx.begin_path();
-        ctx.move_to((view_point_e.x + offset_x) as f64, (view_point_e.y + offset_y) as f64);
-        ctx.line_to((view_point_f.x + offset_x) as f64, (view_point_f.y + offset_y) as f64);
-        ctx.line_to((view_point_g.x + offset_x) as f64, (view_point_g.y + offset_y) as f64);
-        ctx.line_to((view_point_h.x + offset_x) as f64, (view_point_h.y + offset_y) as f64);
+        ctx.move_to((view_point_e.x + offset_x) as f64, (offset_y - view_point_e.y) as f64);
+        ctx.line_to((view_point_f.x + offset_x) as f64, (offset_y - view_point_f.y) as f64);
+        ctx.line_to((view_point_g.x + offset_x) as f64, (offset_y - view_point_g.y) as f64);
+        ctx.line_to((view_point_h.x + offset_x) as f64, (offset_y - view_point_h.y) as f64);
         ctx.close_path();
         ctx.set_fill_style(&JsValue::from_str(cube.color_efgh.as_css_str()));
         ctx.fill();
@@ -118,6 +118,42 @@ pub fn draw_cube(canvas_element: &HtmlCanvasElement, cube: &Cube, camera: &Camer
 
 fn get_view_point(point_name: &str, cube: &Cube, camera: &CameraModel) -> ViewPoint2D {
 
-  let perspective_point_wk = perspective_projection(&cube.get_abs_point(point_name), camera);
-  viewing_transform(&perspective_point_wk, &camera.view_frustum)
+    let perspective_point_wk = perspective_projection(&cube.get_abs_point(point_name), camera);
+    viewing_transform(&perspective_point_wk, &camera.view_frustum)
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn position_test() {
+        let cube = &Cube::default();
+        let camera = &CameraModel::default();
+
+        let view_point_a = get_view_point("a", cube, camera);
+        let view_point_b = get_view_point("b", cube, camera);
+        let view_point_c = get_view_point("c", cube, camera);
+        let view_point_d = get_view_point("d", cube, camera);
+        let view_point_e = get_view_point("e", cube, camera);
+        let view_point_f = get_view_point("f", cube, camera);
+        let view_point_g = get_view_point("g", cube, camera);
+        let view_point_h = get_view_point("h", cube, camera);
+        assert_eq!(view_point_a.x as i32, -70);
+        assert_eq!(view_point_a.y as i32,  40);
+        assert_eq!(view_point_b.x as i32,   0);
+        assert_eq!(view_point_b.y as i32,   0);
+        assert_eq!(view_point_c.x as i32,  70);
+        assert_eq!(view_point_c.y as i32,  40);
+        assert_eq!(view_point_d.x as i32,   0);
+        assert_eq!(view_point_d.y as i32,  81);
+
+        assert_eq!(view_point_e.x as i32, -70);
+        assert_eq!(view_point_e.y as i32, -40);
+        assert_eq!(view_point_f.x as i32,   0);
+        assert_eq!(view_point_f.y as i32, -81);
+        assert_eq!(view_point_g.x as i32,  70);
+        assert_eq!(view_point_g.y as i32, -40);
+    }
 }

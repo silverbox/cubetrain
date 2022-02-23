@@ -55,6 +55,19 @@ pub struct CameraModel {
   pub view_frustum: ViewFrustum
 }
 
+// 中心と点Bを結ぶ方向から中心にカメラを向ける形
+impl Default for CameraModel {
+  fn default() -> Self {
+    Self {
+      pos: CameraVec { x: 200.0, y: 200.0, z: 200.0 },
+      x_axis: CameraVec { x: -0.706, y:  0.0  , z:  0.706 },
+      y_axis: CameraVec { x: -0.405, y:  0.810, z: -0.405 }, // vec X * vec Z
+      z_axis: CameraVec { x: -0.577, y: -0.577, z: -0.577 },
+      view_frustum: ViewFrustum { left: 200.0, right: -200.0, top: 200.0, bottom: -200.0, near: 100.0, far: 200.0 }
+    }
+  }
+}
+
 // 平行移動
 pub fn shift(point: &NormPoint, tx: f32, ty: f32, tz: f32) -> NormPoint {
   NormPoint {
@@ -184,12 +197,7 @@ mod tests {
 
   #[test]
   fn perspective_test() {
-    // let camera_pos = CameraVec { x: 00.0, y: 0.0, z: 00.0 };
-    let camera_pos = CameraVec { x: 200.0, y: 200.0, z: 200.0 };
-
-    let camera_x_axis = CameraVec { x: -0.706, y:  0.0  , z:  0.706 };
-    let camera_y_axis = CameraVec { x: -0.405, y:  0.810, z: -0.405 }; // vec X * vec Z
-    let camera_z_axis = CameraVec { x: -0.577, y: -0.577, z: -0.577 };
+    let camera = &CameraModel::default();
 
     let org_point_a = NormPoint {x: -1.0, y:  1.0, z:  1.0, w: 1.0};
     let scaled_point_a = scale(&org_point_a, 100.0, 100.0, 100.0);
@@ -197,7 +205,7 @@ mod tests {
     assert_eq!(scaled_point_a.y,  100.0);
     assert_eq!(scaled_point_a.z,  100.0);
 
-    let perspective_point = perspective_projection(&scaled_point_a, &camera_pos, &camera_x_axis, &camera_y_axis, &camera_z_axis);
+    let perspective_point = perspective_projection(&scaled_point_a, &camera);
     assert_eq!(perspective_point.x, 141.2);
     assert_eq!(perspective_point.y,  81.0);
     assert_eq!(perspective_point.z, 288.5);
@@ -205,7 +213,7 @@ mod tests {
     // print!("{}\n", debugtxt);
 
     let org_point_b = NormPoint {x: 100.0, y: 100.0, z: 100.0, w: 1.0};
-    let perspective_point_b = perspective_projection(&org_point_b, &camera_pos, &camera_x_axis, &camera_y_axis, &camera_z_axis);
+    let perspective_point_b = perspective_projection(&org_point_b, &camera);
     assert_eq!(perspective_point_b.x, 0.0);
     assert_eq!(perspective_point_b.y, 0.0);
     assert_eq!(perspective_point_b.z, 173.1);
@@ -213,7 +221,7 @@ mod tests {
     // print!("{}\n", debugtxt_b);
 
     let org_point_c = NormPoint {x: 100.0, y: 100.0, z: -100.0, w: 1.0};
-    let perspective_point_c = perspective_projection(&org_point_c, &camera_pos, &camera_x_axis, &camera_y_axis, &camera_z_axis);
+    let perspective_point_c = perspective_projection(&org_point_c, &camera);
     // let debugtxt_c = format!("perspective_point_c x={}, y={}, z={}", perspective_point_c.x, perspective_point_c.y, perspective_point_c.z);
     // print!("{}\n", debugtxt_c);
     assert_eq!(perspective_point_c.x, -141.2);
@@ -221,7 +229,7 @@ mod tests {
     assert_eq!(perspective_point_c.z,  288.5);
 
     let org_point_f = NormPoint {x: 100.0, y: -100.0, z: 100.0, w: 1.0};
-    let perspective_point_f = perspective_projection(&org_point_f, &camera_pos, &camera_x_axis, &camera_y_axis, &camera_z_axis);
+    let perspective_point_f = perspective_projection(&org_point_f, &camera);
     // let debugtxt_f = format!("perspective_point_f x={}, y={}, z={}", perspective_point_f.x, perspective_point_f.y, perspective_point_f.z);
     // print!("{}\n", debugtxt_f);
     assert_eq!(perspective_point_f.x,    0.0);
@@ -229,19 +237,19 @@ mod tests {
     assert_eq!(perspective_point_f.z,  288.5);
 
     let org_point_e = NormPoint {x: -100.0, y: -100.0, z: 100.0, w: 1.0};
-    let perspective_point_e = perspective_projection(&org_point_e, &camera_pos, &camera_x_axis, &camera_y_axis, &camera_z_axis);
+    let perspective_point_e = perspective_projection(&org_point_e, &camera);
     assert_eq!(perspective_point_e.x, 141.2);
     assert_eq!(perspective_point_e.y, -81.0);
     assert_eq!(get_permil(perspective_point_e.z), 403900);
 
-    let vf = ViewFrustum { left: 200.0, right: -200.0, top: 200.0, bottom: -200.0, near: 100.0, far: 200.0 };
+    let vf = &camera.view_frustum;
 
-    let view_p_a = viewing_transform(&perspective_point, &vf);
+    let view_p_a = viewing_transform(&perspective_point, vf);
     print!("view a x={}, y={}\n", view_p_a.x, view_p_a.y);
     assert_eq!(view_p_a.x, -70.6);
     assert_eq!(view_p_a.y,  40.5);
 
-    let view_p_e = viewing_transform(&perspective_point_e, &vf);
+    let view_p_e = viewing_transform(&perspective_point_e, vf);
     print!("view e x={}, y={}\n", view_p_e.x, view_p_e.y);
     assert_eq!(view_p_e.x, -70.6);
     assert_eq!(view_p_e.y, -40.5);
