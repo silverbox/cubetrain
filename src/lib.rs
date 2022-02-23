@@ -7,15 +7,16 @@ use seed::{prelude::*, *};
 use web_sys::HtmlCanvasElement;
 
 mod cube;
+mod cubeset;
 mod cubic_calc;
 mod draw_manager;
 
-use cube::Cube;
 use cube::CubeColor;
+use cubeset::CubeSet;
 use cubic_calc::CameraVec;
 use cubic_calc::ViewFrustum;
 use cubic_calc::CameraModel;
-use draw_manager::draw_cube;
+use draw_manager::draw_cubeset;
 
 // ------ ------
 //     Init
@@ -26,7 +27,7 @@ fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
     orders.after_next_render(|_| Msg::Rendered);
     Model { 
         counter: 0,
-        cube: Cube::default(),
+        cubeset: CubeSet::default(),
         camera: CameraModel::default(),
         canvas: ElRef::<HtmlCanvasElement>::default(),
     }
@@ -39,7 +40,7 @@ fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
 // `Model` describes our app state.
 struct Model {
     counter: i32,
-    cube: Cube,
+    cubeset: CubeSet,
     camera: CameraModel,
     canvas: ElRef<HtmlCanvasElement>,
 }
@@ -62,7 +63,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         Msg::RandomRotate => model.counter += 1,
         Msg::Rendered => {
             draw(model);
-            model.cube.rotate_test();
+            model.cubeset.rotate_test();
             // We want to call `.skip` to prevent infinite loop.
             // (However infinite loops are useful for animations.)
             orders.after_next_render(|_| Msg::Rendered).skip();
@@ -73,7 +74,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 fn draw(model: &Model) {
     let canvas_element = model.canvas.get().expect("get canvas element");
 
-    draw_cube(&canvas_element, &model.cube, &model.camera);
+    draw_cubeset(&canvas_element, &model.cubeset, &model.camera);
 }
 
 // ------ ------
@@ -88,7 +89,7 @@ fn view(model: &Model) -> Node<Msg> {
         button![
             model.counter,
             style![
-                St::BackgroundColor => CubeColor::Red.as_css_str(),
+                St::BackgroundColor => CubeColor::Lime.as_css_str(),
             ],
             ev(Ev::Click, |_| Msg::RandomRotate),
         ],

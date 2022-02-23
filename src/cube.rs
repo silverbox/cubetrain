@@ -4,8 +4,10 @@
 // use super::cubic_calc::Point;
 use super::cubic_calc::*;
 
-const ROTATE_STEP: f32 = PI / 16.0;
+pub const ROTATE_STEP: f32 = PI / 16.0;
+pub const CUBE_SIZE: f32 = 100.0;
 
+#[derive(PartialEq)]
 pub enum CubeColor {
   White,
   Yellow,
@@ -86,7 +88,7 @@ pub struct Cube {
 impl Default for Cube {
   fn default() -> Self {
     Self {
-      size: 100.0,
+      size: CUBE_SIZE / 2.0,
       center_point: NormPoint {x: 0.0, y:  0.0, z: 0.0, w: 1.0},
       //
       pa: NormPoint {x: -1.0, y:  1.0, z:  1.0, w: 1.0},
@@ -104,12 +106,6 @@ impl Default for Cube {
       color_cdgh: CubeColor::Black,
       color_dahe: CubeColor::Black,
       color_efgh: CubeColor::Black,
-      // color_abcd: CubeColor::White,
-      // color_abef: CubeColor::Lime,
-      // color_bcfg: CubeColor::Red,
-      // color_cdgh: CubeColor::Blue,
-      // color_dahe: CubeColor::Orange,
-      // color_efgh: CubeColor::Yellow,
       //
       x_axis_rotate_rad: 0.0,
       y_axis_rotate_rad: 0.0,
@@ -127,8 +123,11 @@ impl Cube {
   }
 
   // 回転した面の視点からの可視を判断。正方形の３つの点を使った三角形で処理する
-  pub fn is_visible_surface(&self, surface: CubeSurface, camera: &CameraModel) -> bool {
-    // , camera_pos: &CameraVec, camera_x_axis: &CameraVec, camera_y_axis: &CameraVec, camera_z_axis: &CameraVec
+  pub fn is_visible_surface(&self, surface: &CubeSurface, camera: &CameraModel) -> bool {
+    if self.get_surface_color(surface) == &CubeColor::Black {
+      return false;
+    }
+
     let point_list = self.get_surface_point_list(surface);
 
     // 回転済み絶対座標
@@ -163,7 +162,14 @@ impl Cube {
     (wk_multiple as f32) * rad_step
   }
 
-  fn get_surface_point_list(&self, surface: CubeSurface) -> [&NormPoint; 4] {
+  // Cubeの中心位置はそのまま。回転だけする
+  pub fn rotate(&mut self, rad_x: f32, rad_y: f32, rad_z: f32, rad_step: f32) {
+    self.x_axis_rotate_rad = Cube::adjust_rad(self.x_axis_rotate_rad + rad_x, rad_step);
+    self.y_axis_rotate_rad = Cube::adjust_rad(self.y_axis_rotate_rad + rad_y, rad_step);
+    self.z_axis_rotate_rad = Cube::adjust_rad(self.z_axis_rotate_rad + rad_z, rad_step);
+  }
+
+  fn get_surface_point_list(&self, surface: &CubeSurface) -> [&NormPoint; 4] {
     // 法線ベクトルを求めるために見せたい面の点を半時計回りにセットする
     match surface {
       CubeSurface::ABCD => [&self.pa, &self.pb, &self.pc, &self.pd] ,
@@ -176,11 +182,17 @@ impl Cube {
     }
   }
 
-  // Cubeの中心位置はそのまま。回転だけする
-  fn rotate(&mut self, rad_x: f32, rad_y: f32, rad_z: f32, rad_step: f32) {
-    self.x_axis_rotate_rad = Cube::adjust_rad(self.x_axis_rotate_rad + rad_x, rad_step);
-    self.y_axis_rotate_rad = Cube::adjust_rad(self.y_axis_rotate_rad + rad_y, rad_step);
-    self.z_axis_rotate_rad = Cube::adjust_rad(self.z_axis_rotate_rad + rad_z, rad_step);
+  fn get_surface_color(&self, surface: &CubeSurface) -> &CubeColor {
+    // 法線ベクトルを求めるために見せたい面の点を半時計回りにセットする
+    match surface {
+      CubeSurface::ABCD => &self.color_abcd,
+      CubeSurface::ABEF => &self.color_abef,
+      CubeSurface::BCFG => &self.color_bcfg,
+      CubeSurface::CDGH => &self.color_cdgh,
+      CubeSurface::DAEH => &self.color_dahe,
+      CubeSurface::EFGH => &self.color_efgh,
+      _ => &CubeColor::Black
+    }
   }
 
   // 引数の点を現在の回転した座標にして返す
@@ -209,213 +221,6 @@ impl Cube {
   }
 }
 
-pub struct CubeSet {
-  white_center: Cube,
-  white_red_edge: Cube,
-  white_blue_edge: Cube,
-  white_lime_edge: Cube,
-  white_orange_edge: Cube,
-  white_red_blue_corner: Cube,
-  white_blue_orange_corner: Cube,
-  white_orange_lime_corner: Cube,
-  white_lime_red_corner: Cube,
-
-  yellow_center: Cube,
-  yellow_red_edge: Cube,
-  yellow_lime_edge: Cube,
-  yellow_orange_edge: Cube,
-  yellow_blue_edge: Cube,
-  yellow_blue_red_corner: Cube,
-  yellow_red_lime_corner: Cube,
-  yellow_lime_orange_corner: Cube,
-  yellow_orange_blue_corner: Cube,
-
-  blue_center: Cube,
-  red_center: Cube,
-  orange_center: Cube,
-  lime_center: Cube,
-
-  blue_red_edge: Cube,
-  red_lime_edge: Cube,
-  lime_orange_edge: Cube,
-  orange_blue_edge: Cube
-}
-
-// /**
-//  白上面、ライム正面、赤右側面。キューブの辺の長さを100として、キューブ集合体の中心座標が(0,0,0)
-//  */
-impl Default for CubeSet {
-  fn default() -> Self {
-    Self {
-      white_center: Cube {
-        center_point: NormPoint {x: 0.0, y: 100.0, z: 0.0, w: 1.0},
-        color_abcd: CubeColor::White,
-        ..Default::default()
-      },
-      white_red_edge: Cube {
-        center_point: NormPoint {x: 100.0, y: 100.0, z: 0.0, w: 1.0},
-        color_abcd: CubeColor::White,
-        color_bcfg: CubeColor::Red,
-        ..Default::default()
-      },
-      white_blue_edge: Cube {
-        center_point: NormPoint {x: 0.0, y: 100.0, z: -100.0, w: 1.0},
-        color_abcd: CubeColor::White,
-        color_cdgh: CubeColor::Blue,
-        ..Default::default()
-      },
-      white_lime_edge: Cube {
-        center_point: NormPoint {x: 0.0, y: 100.0, z: 100.0, w: 1.0},
-        color_abcd: CubeColor::White,
-        color_abef: CubeColor::Lime,
-        ..Default::default()
-      },
-      white_orange_edge: Cube {
-        center_point: NormPoint {x: -100.0, y: 100.0, z: 0.0, w: 1.0},
-        color_abcd: CubeColor::White,
-        color_dahe: CubeColor::Orange,
-        ..Default::default()
-      },
-      //
-      white_red_blue_corner: Cube {
-        center_point: NormPoint {x: 100.0, y: 100.0, z: -100.0, w: 1.0},
-        color_abcd: CubeColor::White,
-        color_bcfg: CubeColor::Red,
-        color_cdgh: CubeColor::Blue,
-        ..Default::default()
-      },
-      white_blue_orange_corner: Cube {
-        center_point: NormPoint {x: -100.0, y: 100.0, z: -100.0, w: 1.0},
-        color_abcd: CubeColor::White,
-        color_cdgh: CubeColor::Blue,
-        color_dahe: CubeColor::Orange,
-        ..Default::default()
-      },
-      white_orange_lime_corner: Cube {
-        center_point: NormPoint {x: -100.0, y: 100.0, z: 100.0, w: 1.0},
-        color_abcd: CubeColor::White,
-        color_abef: CubeColor::Lime,
-        color_dahe: CubeColor::Orange,
-        ..Default::default()
-      },
-      white_lime_red_corner: Cube {
-        center_point: NormPoint {x: 100.0, y: 100.0, z: 100.0, w: 1.0},
-        //
-        color_abcd: CubeColor::White,
-        color_abef: CubeColor::Lime,
-        color_bcfg: CubeColor::Red,
-        ..Default::default()
-      },
-      //
-      yellow_center: Cube {
-        center_point: NormPoint {x: 0.0, y: -100.0, z: 0.0, w: 1.0},
-        color_efgh: CubeColor::Yellow,
-        ..Default::default()
-      },
-      //
-      yellow_red_edge: Cube {
-        center_point: NormPoint {x: 100.0, y: -100.0, z: 0.0, w: 1.0},
-        color_bcfg: CubeColor::Red,
-        color_efgh: CubeColor::Yellow,
-        ..Default::default()
-      },
-      yellow_lime_edge: Cube {
-        center_point: NormPoint {x: 0.0, y: -100.0, z: 100.0, w: 1.0},
-        color_abef: CubeColor::Lime,
-        color_efgh: CubeColor::Yellow,
-        ..Default::default()
-      },
-      yellow_orange_edge: Cube {
-        center_point: NormPoint {x: -100.0, y: -100.0, z: 0.0, w: 1.0},
-        color_dahe: CubeColor::Orange,
-        color_efgh: CubeColor::Yellow,
-        ..Default::default()
-      },
-      yellow_blue_edge: Cube {
-        center_point: NormPoint {x: 0.0, y: -100.0, z: -100.0, w: 1.0},
-        color_cdgh: CubeColor::Blue,
-        color_efgh: CubeColor::Yellow,
-        ..Default::default()
-      },
-      //
-      yellow_blue_red_corner: Cube {
-        center_point: NormPoint {x: 100.0, y: -100.0, z: -100.0, w: 1.0},
-        color_bcfg: CubeColor::Red,
-        color_cdgh: CubeColor::Blue,
-        color_efgh: CubeColor::Yellow,
-        ..Default::default()
-      },
-      yellow_red_lime_corner: Cube {
-        center_point: NormPoint {x: 100.0, y: -100.0, z: 100.0, w: 1.0},
-        color_abef: CubeColor::Lime,
-        color_bcfg: CubeColor::Red,
-        color_efgh: CubeColor::Yellow,
-        ..Default::default()
-      },
-      yellow_lime_orange_corner: Cube {
-        center_point: NormPoint {x: -100.0, y: -100.0, z: 100.0, w: 1.0},
-        color_abef: CubeColor::Lime,
-        color_dahe: CubeColor::Orange,
-        color_efgh: CubeColor::Yellow,
-        ..Default::default()
-      },
-      yellow_orange_blue_corner: Cube {
-        center_point: NormPoint {x: -100.0, y: -100.0, z: -100.0, w: 1.0},
-        color_cdgh: CubeColor::Blue,
-        color_dahe: CubeColor::Orange,
-        color_efgh: CubeColor::Black,
-        ..Default::default()
-      },
-      //
-      blue_center: Cube {
-        center_point: NormPoint {x: 0.0, y: 0.0, z: -100.0, w: 1.0},
-        color_cdgh: CubeColor::Blue,
-        ..Default::default()
-      },
-      red_center: Cube {
-        center_point: NormPoint {x: 100.0, y: 0.0, z: 0.0, w: 1.0},
-        color_bcfg: CubeColor::Red,
-        ..Default::default()
-      },
-      orange_center: Cube {
-        center_point: NormPoint {x: -100.0, y: 0.0, z: 0.0, w: 1.0},
-        color_dahe: CubeColor::Orange,
-        ..Default::default()
-      },
-      lime_center: Cube {
-        center_point: NormPoint {x: 0.0, y: 0.0, z: 100.0, w: 1.0},
-        color_abef: CubeColor::Lime,
-        ..Default::default()
-      },
-      //
-      blue_red_edge: Cube {
-        center_point: NormPoint {x: 100.0, y: 0.0, z: -100.0, w: 1.0},
-        color_bcfg: CubeColor::Red,
-        color_cdgh: CubeColor::Blue,
-        ..Default::default()
-      },
-      red_lime_edge: Cube {
-        center_point: NormPoint {x: 100.0, y: 0.0, z: 100.0, w: 1.0},
-        color_abef: CubeColor::Lime,
-        color_bcfg: CubeColor::Red,
-        ..Default::default()
-      },
-      lime_orange_edge: Cube {
-        center_point: NormPoint {x: -100.0, y: 0.0, z: 100.0, w: 1.0},
-        color_abef: CubeColor::Lime,
-        color_dahe: CubeColor::Orange,
-        ..Default::default()
-      },
-      orange_blue_edge: Cube {
-        center_point: NormPoint {x: -100.0, y: 0.0, z: -100.0, w: 1.0},
-        color_cdgh: CubeColor::Blue,
-        color_dahe: CubeColor::Orange,
-        ..Default::default()
-      },
-    }
-  }
-}
-
 // ------ ------
 //     Test
 // ------ ------
@@ -424,41 +229,52 @@ impl Default for CubeSet {
 mod tests {
   use super::*;
 
+  fn gettestcube() -> Cube {
+    Cube {
+      color_abcd: CubeColor::White,
+      color_abef: CubeColor::Orange,
+      color_bcfg: CubeColor::Lime,
+      color_cdgh: CubeColor::Red,
+      color_dahe: CubeColor::Blue,
+      color_efgh: CubeColor::Yellow,
+      ..Default::default()
+    }
+  }
+
   #[test]
   fn rotate_test() {
-    let testcube = &mut Cube::default();
-
+    let mut testcube = gettestcube();
     let point_a1 = testcube.get_abs_point("a");
-    assert_eq!(point_a1.x, -100.0);
-    assert_eq!(point_a1.y,  100.0);
+    assert_eq!(point_a1.x, -CUBE_SIZE / 2.0);
+    assert_eq!(point_a1.y,  CUBE_SIZE / 2.0);
 
     testcube.rotate_test();
     assert_eq!(testcube.x_axis_rotate_rad, ROTATE_STEP);
 
     let point_a2 = testcube.get_abs_point("a");
     let obj_norm_point2 = testcube.get_norm_point(&point_a2);
-    assert_eq!(point_a2.x as i32, -100);
+    assert_eq!(point_a2.x as i32, -(CUBE_SIZE / 2.0) as i32);
 
     testcube.rotate_test();
     testcube.rotate_test();
     testcube.rotate_test();
     let point_a3 = testcube.get_abs_point("a");
-    assert_eq!(point_a3.x as i32, -100);
+    assert_eq!(point_a3.x as i32, -(CUBE_SIZE / 2.0) as i32);
     assert_eq!(point_a3.y as i32,    0);
-    assert_eq!(point_a3.z as i32,  141);
+    assert_eq!(point_a3.z as i32,  (CUBE_SIZE * 0.707) as i32); // sqrt(2) / 2
   }
 
   #[test]
   fn visible_surface_test() {
-    let testcube = &Cube::default();
+    let testcube = gettestcube();
     let camera = &CameraModel::default();
 
-    assert_eq!(testcube.is_visible_surface(CubeSurface::ABCD, &camera), true);
-    assert_eq!(testcube.is_visible_surface(CubeSurface::ABEF, &camera), true);
-    assert_eq!(testcube.is_visible_surface(CubeSurface::BCFG, &camera), true);
-    assert_eq!(testcube.is_visible_surface(CubeSurface::CDGH, &camera), false);
-    assert_eq!(testcube.is_visible_surface(CubeSurface::DAEH, &camera), false);
-    assert_eq!(testcube.is_visible_surface(CubeSurface::EFGH, &camera), false);
+    assert_eq!(testcube.is_visible_surface(&CubeSurface::ABCD, &camera), true);
+    assert_eq!(testcube.is_visible_surface(&CubeSurface::ABEF, &camera), true);
+    assert_eq!(testcube.is_visible_surface(&CubeSurface::BCFG, &camera), true);
+    assert_eq!(testcube.is_visible_surface(&CubeSurface::CDGH, &camera), false);
+    assert_eq!(testcube.is_visible_surface(&CubeSurface::DAEH, &camera), false);
+    assert_eq!(testcube.is_visible_surface(&CubeSurface::EFGH, &camera), false);
   }
 }
 
