@@ -209,29 +209,21 @@ mod tests {
     assert_eq!(perspective_point.x, 141.2);
     assert_eq!(perspective_point.y,  81.0);
     assert_eq!(perspective_point.z, 288.5);
-    // let debugtxt = format!("perspective_point_a x={}, y={}, z={}", perspective_point.x, perspective_point.y, perspective_point.z);
-    // print!("{}\n", debugtxt);
 
     let org_point_b = NormPoint {x: 100.0, y: 100.0, z: 100.0, w: 1.0};
     let perspective_point_b = perspective_projection(&org_point_b, &camera);
     assert_eq!(perspective_point_b.x, 0.0);
     assert_eq!(perspective_point_b.y, 0.0);
     assert_eq!(perspective_point_b.z, 173.1);
-    // let debugtxt_b = format!("perspective_point_b x={}, y={}, z={}", perspective_point_b.x, perspective_point_b.y, perspective_point_b.z);
-    // print!("{}\n", debugtxt_b);
 
     let org_point_c = NormPoint {x: 100.0, y: 100.0, z: -100.0, w: 1.0};
     let perspective_point_c = perspective_projection(&org_point_c, &camera);
-    // let debugtxt_c = format!("perspective_point_c x={}, y={}, z={}", perspective_point_c.x, perspective_point_c.y, perspective_point_c.z);
-    // print!("{}\n", debugtxt_c);
     assert_eq!(perspective_point_c.x, -141.2);
     assert_eq!(perspective_point_c.y,   81.0);
     assert_eq!(perspective_point_c.z,  288.5);
 
     let org_point_f = NormPoint {x: 100.0, y: -100.0, z: 100.0, w: 1.0};
     let perspective_point_f = perspective_projection(&org_point_f, &camera);
-    // let debugtxt_f = format!("perspective_point_f x={}, y={}, z={}", perspective_point_f.x, perspective_point_f.y, perspective_point_f.z);
-    // print!("{}\n", debugtxt_f);
     assert_eq!(perspective_point_f.x,    0.0);
     assert_eq!(perspective_point_f.y, -162.0);
     assert_eq!(perspective_point_f.z,  288.5);

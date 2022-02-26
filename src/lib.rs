@@ -50,7 +50,7 @@ struct Model {
 // ------ ------
 
 // (Remove the line below once any of your `Msg` variants doesn't implement `Copy`.)
-#[derive(Copy, Clone)]
+// #[derive(Copy, Clone)]
 // `Msg` describes the different events you can modify state with.
 enum Msg {
     Rendered,

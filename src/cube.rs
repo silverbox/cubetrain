@@ -178,7 +178,7 @@ impl Cube {
       CubeSurface::CDGH => [&self.pc, &self.pg, &self.ph, &self.pd] ,
       CubeSurface::DAEH => [&self.pd, &self.ph, &self.pe, &self.pa] ,
       CubeSurface::EFGH => [&self.pe, &self.ph, &self.pg, &self.pf] ,
-      _ => [&self.pe, &self.pf, &self.pg, &self.ph]
+      // _ => [&self.pe, &self.pf, &self.pg, &self.ph]
     }
   }
 
@@ -191,7 +191,7 @@ impl Cube {
       CubeSurface::CDGH => &self.color_cdgh,
       CubeSurface::DAEH => &self.color_dahe,
       CubeSurface::EFGH => &self.color_efgh,
-      _ => &CubeColor::Black
+      // _ => &CubeColor::Black
     }
   }
 
