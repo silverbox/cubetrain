@@ -28,8 +28,13 @@ pub fn draw_cubeset(canvas_element: &HtmlCanvasElement, cubeset: &CubeSet, camer
     ctx.begin_path();
     ctx.clear_rect(0., 0., 800., 800.);
 
-    // draw_cube(canvas_element, &cubeset.white_orange_lime_corner, camera);
-    for cube in cubeset.get_all_cube().iter() {
+    let mut wkvec:Vec<&Cube> = cubeset.get_all_cube().into_iter().map(|item| item).collect();
+    wkvec.sort_by(|a, b| {
+        let cvp_a = get_center_view_point(a, camera);
+        let cvp_b = get_center_view_point(b, camera);
+        cvp_a.z.partial_cmp(&cvp_b.z).unwrap()
+    });
+    for cube in wkvec.into_iter() {
         draw_cube(&ctx, cube, camera);
     }
 
@@ -128,8 +133,12 @@ fn draw_cube(ctx: &CanvasRenderingContext2d, cube: &Cube, camera: &CameraModel) 
 
 }
 
-fn get_view_point(point_name: &str, cube: &Cube, camera: &CameraModel) -> ViewPoint2D {
+fn get_center_view_point(cube: &Cube, camera: &CameraModel) -> ViewPoint2D {
+    let perspective_point_wk = perspective_projection(&cube.center_point, camera);
+    viewing_transform(&perspective_point_wk, &camera.view_frustum)
+}
 
+fn get_view_point(point_name: &str, cube: &Cube, camera: &CameraModel) -> ViewPoint2D {
     let perspective_point_wk = perspective_projection(&cube.get_abs_point(point_name), camera);
     viewing_transform(&perspective_point_wk, &camera.view_frustum)
 }

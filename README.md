@@ -39,27 +39,42 @@ cargo make serve
 
 https://github.com/seed-rs/seed-quickstart
 
+# 各種参考にさせていただいたページ
 
-# 3Dオブジェクトの描画に関して参考にさせていただいたページ
+## Rustの技術
 
-## 2Dへの投影に関して
+### 公式ページ
 
-### 3D座標変換知識
+- [The Rust Programming Language 日本語版](https://doc.rust-jp.rs/book-ja/title-page.html)
+- [Rust by Example 日本語版](https://doc.rust-jp.rs/rust-by-example-ja/index.html)
+
+### 個人ページ（公式だったらごめんなさい）
+
+#### ソート実行に関して
+
+https://uma0317.github.io/rust-cookbook-ja/algorithms/sorting.html
+
+## 3Dオブジェクトの描画
+
+### 2Dへの投影に関して
+
+#### 3D座標変換知識
 https://sbfl.net/blog/2016/09/05/webgl2-tutorial-3d-knowledge/
 http://www.cgg.cs.tsukuba.ac.jp/~endo/lecture/2020/cgbasics/03/03.pdf
 
-### ワールド座標からカメラ座標への変換
+#### ワールド座標からカメラ座標への変換
 https://mem-archive.com/2018/02/17/post-74/
 
-### カメラY軸に関して
+#### カメラY軸に関して
 https://yttm-work.jp/gmpg/gmpg_0003.html
 
-### 透視変換の行列式
+#### 透視変換の行列式
 http://kondolab.org/archive/2010/research/cadcgtext/Chap5/Chap504.html
 
-## 陰線処理
+### 隠線処理
 
 http://www.myu.ac.jp/~makanae/CG/cg1_14.htm
+
 
 # 以降、当時トライしたが導入断念したフロー
 
