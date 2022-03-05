@@ -124,9 +124,9 @@ impl Cube {
 
   // 回転した面の視点からの可視を判断。正方形の３つの点を使った三角形で処理する
   pub fn is_visible_surface(&self, surface: &CubeSurface, camera: &CameraModel) -> bool {
-    if self.get_surface_color(surface) == &CubeColor::Black {
-      return false;
-    }
+    // if self.get_surface_color(surface) == &CubeColor::Black {
+    //   return false;
+    // }
 
     let point_list = self.get_surface_point_list(surface);
 
