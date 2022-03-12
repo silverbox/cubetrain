@@ -27,6 +27,7 @@ fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
     orders.after_next_render(|_| Msg::Rendered);
     Model { 
         counter: 0,
+        animaion_speed: 10,
         cubeset: CubeSet::default(),
         camera: CameraModel::default(),
         canvas: ElRef::<HtmlCanvasElement>::default(),
@@ -40,6 +41,7 @@ fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
 // `Model` describes our app state.
 struct Model {
     counter: i32,
+    animaion_speed: i32,
     cubeset: CubeSet,
     camera: CameraModel,
     canvas: ElRef<HtmlCanvasElement>,
@@ -53,6 +55,7 @@ struct Model {
 // #[derive(Copy, Clone)]
 // `Msg` describes the different events you can modify state with.
 enum Msg {
+    AnimationSpeedChanged(String),
     Rendered,
     RandomRotate,
 }
@@ -60,10 +63,15 @@ enum Msg {
 // `update` describes how to handle each `Msg`.
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
-        Msg::RandomRotate => model.counter += 1,
+        Msg::AnimationSpeedChanged(input_val) => {
+            model.animaion_speed = input_val.parse().unwrap();;
+        },
+        Msg::RandomRotate => {
+            model.counter = model.animaion_speed;
+            model.cubeset.rotate_test();
+        },
         Msg::Rendered => {
             draw(model);
-            model.cubeset.rotate_test();
             // We want to call `.skip` to prevent infinite loop.
             // (However infinite loops are useful for animations.)
             orders.after_next_render(|_| Msg::Rendered).skip();
@@ -86,6 +94,14 @@ fn view(model: &Model) -> Node<Msg> {
     div![
         "This is a counter: ",
         C!["counter"],
+        label!["動作速度"],
+        input![
+            attrs! {
+                At::Value => model.animaion_speed,
+                At::Type => "number",
+            },
+            input_ev(Ev::Input, Msg::AnimationSpeedChanged),
+        ],
         button![
             model.counter,
             style![
