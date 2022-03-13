@@ -56,8 +56,8 @@ fn draw_cube(ctx: &CanvasRenderingContext2d, cube: &Cube, camera: &CameraModel) 
     let view_point_g = get_view_point("g", cube, camera);
     let view_point_h = get_view_point("h", cube, camera);
 
-    let offset_x = 300.0;
-    let offset_y = 300.0;
+    let offset_x = 200.0;
+    let offset_y = 200.0;
     let is_visible_abcd = cube.is_visible_surface(&CubeSurface::ABCD, camera);
     let is_visible_abef = cube.is_visible_surface(&CubeSurface::ABEF, camera);
     let is_visible_bcfg = cube.is_visible_surface(&CubeSurface::BCFG, camera);

@@ -124,6 +124,22 @@ pub fn z_rotate(point: &NormPoint, z_rad: f32) -> NormPoint {
   }
 }
 
+// オイラー角回転
+pub fn xyz_rotate(point: &NormPoint, x_rad: f32, y_rad: f32, z_rad: f32) -> NormPoint {
+  let sin_a = x_rad.sin();
+  let cos_a = x_rad.cos();
+  let sin_b = y_rad.sin();
+  let cos_b = y_rad.cos();
+  let sin_c = z_rad.sin();
+  let cos_c = z_rad.cos();
+  NormPoint {
+    x: point.x * (cos_c * cos_b) + point.y * (cos_c * sin_b * sin_a - cos_a * sin_c) + point.z * (sin_c * sin_a + cos_c * cos_a * sin_b),
+    y: point.x * (cos_b * sin_c) + point.y * (cos_c * cos_a + sin_c * sin_b * sin_a) + point.z * (cos_a * sin_c * sin_b - cos_c * sin_a),
+    z: - point.x * sin_b + point.y * cos_b * sin_a + point.z * cos_b * cos_a,
+    w: point.w
+  }
+}
+
 // 透視投影
 pub fn perspective_projection(point: &NormPoint, camera: &CameraModel) -> CameraAxisPoint {
   let camera_vec = CameraVec {

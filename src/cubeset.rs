@@ -22,8 +22,9 @@ pub enum RotateLayer {
   Negative
 }
 pub struct RotateTarget {
-  axis: RotateAxis,
-  layer: RotateLayer
+  pub axis: RotateAxis,
+  pub layer: RotateLayer,
+  pub rad: f32
 }
 
 pub struct CubeSet {
@@ -60,13 +61,6 @@ pub struct CubeSet {
   center: Cube
 }
 
-fn is_target_layer(axis_val: f32, layer: &RotateLayer) -> bool {
-  match layer {
-    RotateLayer::Positive => axis_val > 0.1,
-    RotateLayer::Neutral => {axis_val >= -0.1 && axis_val <= 0.1},
-    RotateLayer::Negative => axis_val < -0.1
-  }
-}
 /**
  白上面、オレンジ正面、ライム右側面。キューブの辺の長さを100として、キューブ集合体の中心座標が(0,0,0)
  ※白中心ピースの方向は、必ずしもこの方向にはならない（時には読める方向にすると、ライム正面、赤右側面になったりする）
@@ -190,7 +184,7 @@ impl Default for CubeSet {
         center_point: NormPoint {x: -CUBE_SIZE, y: -CUBE_SIZE, z: CUBE_SIZE, w: 1.0},
         color_dahe: CubeColor::Blue,
         color_abef: CubeColor::Orange,
-        color_efgh: CubeColor::Black,
+        color_efgh: CubeColor::Yellow,
         ..Default::default()
       },
       //
@@ -319,15 +313,24 @@ impl CubeSet {
 
   pub fn rotate_layer(&mut self, rotate_target: &RotateTarget) {
     for cube in self.get_target_cubes(rotate_target).into_iter() {
-      cube.rotate(ROTATE_STEP, 0.0, 0.0, ROTATE_STEP);
       match rotate_target.axis {
         RotateAxis::X => {
-          let new_center = x_rotate(&cube.center_point, ROTATE_STEP);
+          cube.rotate(rotate_target.rad, 0.0, 0.0, rotate_target.rad);
+          let new_center = xyz_rotate(&cube.center_point, rotate_target.rad, 0.0, 0.0);
           cube.center_point = new_center;
         },
-        RotateAxis::Y => {},
-        RotateAxis::Z => {}
+        RotateAxis::Y => {
+          cube.rotate(0.0, rotate_target.rad, 0.0, rotate_target.rad);
+          let new_center = xyz_rotate(&cube.center_point, 0.0, rotate_target.rad, 0.0);
+          cube.center_point = new_center;
+        },
+        RotateAxis::Z => {
+          cube.rotate(0.0, 0.0, rotate_target.rad, rotate_target.rad);
+          let new_center = xyz_rotate(&cube.center_point, 0.0, 0.0, rotate_target.rad);
+          cube.center_point = new_center;
+        }
       };
+      CubeSet::adjust_position(cube);
     };
   }
 
@@ -340,7 +343,7 @@ impl CubeSet {
         RotateAxis::Y => cube.center_point.y,
         RotateAxis::Z => cube.center_point.z
       };
-      if is_target_layer(chkval, &rotate_target.layer) {
+      if CubeSet::is_target_layer(chkval, &rotate_target.layer) {
         retcubes.push(cube);
       };
     };
@@ -350,7 +353,8 @@ impl CubeSet {
   pub fn rotate_test(&mut self) {
     let rt = RotateTarget {
       axis: RotateAxis::X,
-      layer: RotateLayer::Positive
+      layer: RotateLayer::Positive,
+      rad: ROTATE_STEP
     };
     self.rotate_layer(&rt)
     // for cube in self.get_target_cubes(&rt).iter_mut() {
@@ -370,5 +374,119 @@ impl CubeSet {
       &mut self.yellow_red_lime_corner,
       &mut self.yellow_lime_orange_corner
     ]
+  }
+
+  fn is_target_layer(axis_val: f32, layer: &RotateLayer) -> bool {
+    let threshold = CUBE_SIZE / 5.0;
+    match layer {
+      RotateLayer::Positive => axis_val > threshold,
+      RotateLayer::Neutral => {axis_val >= -threshold && axis_val <= threshold},
+      RotateLayer::Negative => axis_val < -threshold
+    }
+  }
+
+  fn adjust_position(cube: &mut Cube) {
+    let threshold = CUBE_SIZE / 100.0;
+    if cube.center_point.x < (CUBE_SIZE + threshold) && cube.center_point.x > (CUBE_SIZE - threshold) {
+      cube.center_point.x = CUBE_SIZE;
+    } else if cube.center_point.x < threshold && cube.center_point.x > -threshold {
+      cube.center_point.x = 0.0;
+    } else if cube.center_point.x < - (CUBE_SIZE - threshold) && cube.center_point.x > - (CUBE_SIZE + threshold) {
+      cube.center_point.x = - CUBE_SIZE;
+    }
+    if cube.center_point.y < (CUBE_SIZE + threshold) && cube.center_point.y > (CUBE_SIZE - threshold) {
+      cube.center_point.y = CUBE_SIZE;
+    } else if cube.center_point.y < threshold && cube.center_point.y > -threshold {
+      cube.center_point.y = 0.0;
+    } else if cube.center_point.y < - (CUBE_SIZE - threshold) && cube.center_point.y > - (CUBE_SIZE + threshold) {
+      cube.center_point.y = - CUBE_SIZE;
+    }
+    if cube.center_point.z < (CUBE_SIZE + threshold) && cube.center_point.z > (CUBE_SIZE - threshold) {
+      cube.center_point.z = CUBE_SIZE;
+    } else if cube.center_point.z < threshold && cube.center_point.z > -threshold {
+      cube.center_point.z = 0.0;
+    } else if cube.center_point.z < - (CUBE_SIZE - threshold) && cube.center_point.z > - (CUBE_SIZE + threshold) {
+      cube.center_point.z = - CUBE_SIZE;
+    }
+  }
+}
+
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn rotate_layer_test() {
+    let mut testcubeset = CubeSet::default();
+    let r_step = ROTATE_STEP * 8.0;
+    let rotate_xp = RotateTarget {
+      axis: RotateAxis::X,
+      layer: RotateLayer::Positive,
+      rad: r_step
+    };
+    let rotate_yn = RotateTarget {
+      axis: RotateAxis::Y,
+      layer: RotateLayer::Negative,
+      rad: r_step
+    };
+
+    testcubeset.rotate_layer(&rotate_xp);
+    let cube_wol = &testcubeset.white_orange_lime_corner;
+    assert_eq!(cube_wol.center_point.y as i32, - CUBE_SIZE as i32);
+    // assert_eq!(cube_wol.x_axis_rotate_rad, r_step);
+
+    testcubeset.rotate_layer(&rotate_yn);
+    let cube_yl = &testcubeset.yellow_lime_edge;
+    let cube_wol2 = &testcubeset.white_orange_lime_corner;
+    assert_eq!(cube_yl.center_point.x as i32, CUBE_SIZE as i32);
+    assert_eq!(cube_yl.center_point.y as i32, 0);
+    assert_eq!(cube_yl.center_point.z as i32, - CUBE_SIZE as i32);
+    // assert_eq!(cube_wol2.x_axis_rotate_rad, r_step);
+    // assert_eq!(cube_wol2.y_axis_rotate_rad, r_step);
+  }
+
+  #[test]
+  fn rotate_layer_test2() {
+    let mut testcubeset = CubeSet::default();
+    let r_step = ROTATE_STEP * 8.0;
+    let rotate_xp = RotateTarget {
+      axis: RotateAxis::X,
+      layer: RotateLayer::Positive,
+      rad: r_step
+    };
+    let rotate_zp = RotateTarget {
+      axis: RotateAxis::Z,
+      layer: RotateLayer::Positive,
+      rad: r_step
+    };
+    testcubeset.rotate_layer(&rotate_zp);
+    testcubeset.rotate_layer(&rotate_xp);
+    let cube_ylo = &testcubeset.yellow_lime_orange_corner;
+    // assert_eq!(cube_ylo.x_axis_rotate_rad, r_step);
+    // assert_eq!(cube_ylo.y_axis_rotate_rad, 0.0);
+    // assert_eq!(cube_ylo.z_axis_rotate_rad, r_step);
+  }
+
+  #[test]
+  fn rotate_layer_test3() {
+    let mut testcubeset = CubeSet::default();
+    let r_step = ROTATE_STEP * 8.0;
+    let rotate_xp = RotateTarget {
+      axis: RotateAxis::X,
+      layer: RotateLayer::Positive,
+      rad: r_step
+    };
+    let rotate_zp = RotateTarget {
+      axis: RotateAxis::Z,
+      layer: RotateLayer::Positive,
+      rad: r_step
+    };
+    testcubeset.rotate_layer(&rotate_xp);
+    testcubeset.rotate_layer(&rotate_zp);
+    let cube_wol = &testcubeset.white_orange_lime_corner;
+    // assert_eq!(cube_wol.x_axis_rotate_rad, r_step);
+    // assert_eq!(cube_wol.y_axis_rotate_rad, 0.0);
+    // assert_eq!(cube_wol.z_axis_rotate_rad, r_step);
   }
 }
