@@ -17,6 +17,7 @@ use cubeset::CubeSet;
 use cubeset::RotateAxis;
 use cubeset::RotateLayer;
 use cubeset::RotateTarget;
+use cubic_calc::PI;
 use cubic_calc::CameraVec;
 use cubic_calc::ViewFrustum;
 use cubic_calc::CameraModel;
@@ -31,7 +32,9 @@ fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
     orders.after_next_render(|_| Msg::Rendered);
     Model { 
         counter: 0,
-        animaion_speed: 101,
+        animaion_speed: 50,
+        animation_rotate_target: RotateTarget::default(),
+        animation_countdown: 0,
         cubeset: CubeSet::default(),
         camera: CameraModel::default(),
         canvas: ElRef::<HtmlCanvasElement>::default(),
@@ -46,6 +49,8 @@ fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
 struct Model {
     counter: i32,
     animaion_speed: i32,
+    animation_rotate_target: RotateTarget,
+    animation_countdown: i32,
     cubeset: CubeSet,
     camera: CameraModel,
     canvas: ElRef<HtmlCanvasElement>,
@@ -72,7 +77,12 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             model.animaion_speed = input_val.parse().unwrap();;
         },
         Msg::Rotate(rotate_target) => {
-            model.cubeset.rotate_layer(&rotate_target);
+            model.animation_countdown = (900 / model.animaion_speed) as i32;
+            model.animation_rotate_target = RotateTarget {
+                axis: rotate_target.axis,
+                layer: rotate_target.layer,
+                rad: PI / (2 * model.animation_countdown) as f32
+            };
         },
         Msg::ResetPosition => {
             model.counter = model.animaion_speed;
@@ -82,7 +92,13 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             draw(model);
             // We want to call `.skip` to prevent infinite loop.
             // (However infinite loops are useful for animations.)
-            orders.after_next_render(|_| Msg::Rendered).skip();
+            if model.animation_countdown > 0 {
+                model.animation_countdown -= 1;
+                model.cubeset.rotate_layer(&model.animation_rotate_target);
+                orders.after_next_render(|_| Msg::Rendered);
+            } else {
+                orders.after_next_render(|_| Msg::Rendered).skip();
+            }
         }
     }
 }
