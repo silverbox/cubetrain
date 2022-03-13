@@ -12,7 +12,11 @@ mod cubic_calc;
 mod draw_manager;
 
 use cube::CubeColor;
+use cube::ROTATE_STEP;
 use cubeset::CubeSet;
+use cubeset::RotateAxis;
+use cubeset::RotateLayer;
+use cubeset::RotateTarget;
 use cubic_calc::CameraVec;
 use cubic_calc::ViewFrustum;
 use cubic_calc::CameraModel;
@@ -27,6 +31,7 @@ fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
     orders.after_next_render(|_| Msg::Rendered);
     Model { 
         counter: 0,
+        animaion_speed: 101,
         cubeset: CubeSet::default(),
         camera: CameraModel::default(),
         canvas: ElRef::<HtmlCanvasElement>::default(),
@@ -40,6 +45,7 @@ fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
 // `Model` describes our app state.
 struct Model {
     counter: i32,
+    animaion_speed: i32,
     cubeset: CubeSet,
     camera: CameraModel,
     canvas: ElRef<HtmlCanvasElement>,
@@ -53,17 +59,27 @@ struct Model {
 // #[derive(Copy, Clone)]
 // `Msg` describes the different events you can modify state with.
 enum Msg {
+    AnimationSpeedChanged(String),
+    Rotate(RotateTarget),
     Rendered,
-    RandomRotate,
+    ResetPosition,
 }
 
 // `update` describes how to handle each `Msg`.
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
-        Msg::RandomRotate => model.counter += 1,
+        Msg::AnimationSpeedChanged(input_val) => {
+            model.animaion_speed = input_val.parse().unwrap();;
+        },
+        Msg::Rotate(rotate_target) => {
+            model.cubeset.rotate_layer(&rotate_target);
+        },
+        Msg::ResetPosition => {
+            model.counter = model.animaion_speed;
+            model.cubeset = CubeSet::default();
+        },
         Msg::Rendered => {
             draw(model);
-            model.cubeset.rotate_test();
             // We want to call `.skip` to prevent infinite loop.
             // (However infinite loops are useful for animations.)
             orders.after_next_render(|_| Msg::Rendered).skip();
@@ -84,19 +100,132 @@ fn draw(model: &Model) {
 // `view` describes what to display.
 fn view(model: &Model) -> Node<Msg> {
     div![
-        "This is a counter: ",
         C!["counter"],
-        button![
-            model.counter,
-            style![
-                St::BackgroundColor => CubeColor::Lime.as_css_str(),
+        style! {St::Display => "flex"},
+        div![
+            attrs![
+                At::Width => px(300),
+                At::Height => px(500),
             ],
-            ev(Ev::Click, |_| Msg::RandomRotate),
+            div![
+                label!["動作速度"],
+                input![
+                    attrs! {
+                        At::Width => px(50),
+                        At::Value => model.animaion_speed,
+                        At::Type => "number",
+                    },
+                    input_ev(Ev::Input, Msg::AnimationSpeedChanged),
+                ],
+            ],
+            div![
+                label!["X軸回転"],
+                div![
+                    label!["前"],
+                    button![
+                        "x(+)",
+                        ev(Ev::Click, |_| Msg::Rotate(RotateTarget {
+                            axis: RotateAxis::X,
+                            layer: RotateLayer::Positive,
+                            rad: ROTATE_STEP
+                        })),
+                    ],
+                    label!["中"],
+                    button![
+                        "x(0)",
+                        ev(Ev::Click, |_| Msg::Rotate(RotateTarget {
+                            axis: RotateAxis::X,
+                            layer: RotateLayer::Neutral,
+                            rad: ROTATE_STEP
+                        })),
+                    ],
+                    label!["奥"],
+                    button![
+                        "x(-)",
+                        ev(Ev::Click, |_| Msg::Rotate(RotateTarget {
+                            axis: RotateAxis::X,
+                            layer: RotateLayer::Negative,
+                            rad: ROTATE_STEP
+                        })),
+                    ],
+                ]
+            ],
+            div![
+                label!["Y軸回転"],
+                div![
+                    label!["上"],
+                    button![
+                        "y(+)",
+                        ev(Ev::Click, |_| Msg::Rotate(RotateTarget {
+                            axis: RotateAxis::Y,
+                            layer: RotateLayer::Positive,
+                            rad: ROTATE_STEP
+                        })),
+                    ],
+                    label!["中"],
+                    button![
+                        "y(0)",
+                        ev(Ev::Click, |_| Msg::Rotate(RotateTarget {
+                            axis: RotateAxis::Y,
+                            layer: RotateLayer::Neutral,
+                            rad: ROTATE_STEP
+                        })),
+                    ],
+                    label!["下"],
+                    button![
+                        "y(-)",
+                        ev(Ev::Click, |_| Msg::Rotate(RotateTarget {
+                            axis: RotateAxis::Y,
+                            layer: RotateLayer::Negative,
+                            rad: ROTATE_STEP
+                        })),
+                    ],
+                ]
+            ],
+            div![
+                label!["Z軸回転"],
+                div![
+                    label!["前"],
+                    button![
+                        "z(+)",
+                        ev(Ev::Click, |_| Msg::Rotate(RotateTarget {
+                            axis: RotateAxis::Z,
+                            layer: RotateLayer::Positive,
+                            rad: ROTATE_STEP
+                        })),
+                    ],
+                    label!["中"],
+                    button![
+                        "z(0)",
+                        ev(Ev::Click, |_| Msg::Rotate(RotateTarget {
+                            axis: RotateAxis::Z,
+                            layer: RotateLayer::Neutral,
+                            rad: ROTATE_STEP
+                        })),
+                    ],
+                    label!["奥"],
+                    button![
+                        "z(-)",
+                        ev(Ev::Click, |_| Msg::Rotate(RotateTarget {
+                            axis: RotateAxis::Z,
+                            layer: RotateLayer::Negative,
+                            rad: ROTATE_STEP
+                        })),
+                    ],
+                ]
+            ],
+            button![
+                "Reset",
+                style![
+                    St::BackgroundColor => CubeColor::Lime.as_css_str(),
+                ],
+                ev(Ev::Click, |_| Msg::ResetPosition),
+            ],
         ],
         canvas![
             el_ref(&model.canvas),
             attrs![
-                At::Width => px(800),
+                At::Width => px(500),
                 At::Height => px(500),
             ],
             style![

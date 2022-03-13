@@ -75,6 +75,9 @@ http://kondolab.org/archive/2010/research/cadcgtext/Chap5/Chap504.html
 
 http://www.myu.ac.jp/~makanae/CG/cg1_14.htm
 
+### オイラー角
+
+https://www.sky-engin.jp/blog/eulerian-angles/
 
 # 以降、当時トライしたが導入断念したフロー
 

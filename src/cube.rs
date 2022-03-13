@@ -6,6 +6,7 @@ use super::cubic_calc::*;
 
 pub const ROTATE_STEP: f32 = PI / 16.0;
 pub const CUBE_SIZE: f32 = 100.0;
+const ADJUST_THRESHOLD: f32 = 0.0001;
 
 #[derive(PartialEq)]
 pub enum CubeColor {
@@ -62,7 +63,7 @@ pub struct Cube {
   // 絶対空間値
   pub center_point: NormPoint,
   // 相対座標係数（初期値）
-  // center_point、とそれぞれの正規化デバイス座標を元に、それぞれの絶対座標を計算する。
+  // center_point、とそれぞれの正規化デバイス座標を元に、それぞれの絶対座標を計算する。=> 回転後座標保持する
   pub pa: NormPoint, // 上左手前
   pub pb: NormPoint, // 上右手前
   pub pc: NormPoint, // 上右奥
@@ -79,10 +80,10 @@ pub struct Cube {
   pub color_dahe: CubeColor, // 側面４
   pub color_efgh: CubeColor, // 下面
   //
-  // 各点初期値と各軸中心の回転角度で、それぞれの正規化デバイス座標を算出
-  pub x_axis_rotate_rad: f32,
-  pub y_axis_rotate_rad: f32,
-  pub z_axis_rotate_rad: f32,
+  // // 各点初期値と各軸中心の回転角度で、それぞれの正規化デバイス座標を算出 => 思想が間違っていたので座標保持に切り替え
+  // pub x_axis_rotate_rad: f32,
+  // pub y_axis_rotate_rad: f32,
+  // pub z_axis_rotate_rad: f32,
 }
 
 impl Default for Cube {
@@ -106,10 +107,10 @@ impl Default for Cube {
       color_cdgh: CubeColor::Black,
       color_dahe: CubeColor::Black,
       color_efgh: CubeColor::Black,
-      //
-      x_axis_rotate_rad: 0.0,
-      y_axis_rotate_rad: 0.0,
-      z_axis_rotate_rad: 0.0,
+      // //
+      // x_axis_rotate_rad: 0.0,
+      // y_axis_rotate_rad: 0.0,
+      // z_axis_rotate_rad: 0.0,
     }
   }
 }
@@ -117,7 +118,8 @@ impl Default for Cube {
 impl Cube {
 
   pub fn get_abs_point(&self, point_name: &str) -> NormPoint {
-    let obj_norm_point = self.get_norm_point(&self.get_target_point(point_name));
+    // let obj_norm_point = self.get_norm_point(&self.get_target_point(point_name));
+    let obj_norm_point = &self.get_target_point(point_name);
     let scaled_point = scale(&obj_norm_point, self.size, self.size, self.size);
     shift(&scaled_point, self.center_point.x, self.center_point.y, self.center_point.z)
   }
@@ -131,9 +133,12 @@ impl Cube {
     let point_list = self.get_surface_point_list(surface);
 
     // 回転済み絶対座標
-    let abs_p1 = self.get_norm_point(point_list[0]);
-    let abs_p2 = self.get_norm_point(point_list[1]);
-    let abs_p3 = self.get_norm_point(point_list[2]);
+    // let abs_p1 = self.get_norm_point(point_list[0]);
+    // let abs_p2 = self.get_norm_point(point_list[1]);
+    // let abs_p3 = self.get_norm_point(point_list[2]);
+    let abs_p1 = point_list[0];
+    let abs_p2 = point_list[1];
+    let abs_p3 = point_list[2];
     // カメラ視点座標
     let rot_p1 = perspective_projection(&abs_p1, camera);
     let rot_p2 = perspective_projection(&abs_p2, camera);
@@ -156,17 +161,43 @@ impl Cube {
     (normal_vec.x * center_vec.x) + (normal_vec.y * center_vec.y) + (normal_vec.z * center_vec.z) < 0.0
   }
 
-  fn adjust_rad(rad: f32, rad_step: f32) -> f32 {
-    let wk_rad1 = rad % (PI * 2.0);
-    let wk_multiple = ((wk_rad1 / rad_step) + 0.5) as i32;
-    (wk_multiple as f32) * rad_step
+  // fn adjust_rad(rad: f32, rad_step: f32) -> f32 {
+  //   let wk_rad1 = rad % (PI * 2.0);
+  //   let wk_multiple = ((wk_rad1 / rad_step) + 0.5) as i32;
+  //   (wk_multiple as f32) * rad_step
+  // }
+
+  fn adjust_point_sub(val: f32) -> f32 {
+    if val > 1.0 - ADJUST_THRESHOLD && val < 1.0 + ADJUST_THRESHOLD {
+      1.0
+    } else if val > - ADJUST_THRESHOLD && val < ADJUST_THRESHOLD {
+      0.0
+    } else if val > -1.0 - ADJUST_THRESHOLD && val < -1.0 + ADJUST_THRESHOLD {
+      -1.0
+    } else {
+      val
+    }
+  }
+
+  fn adjust_point(point: NormPoint) -> NormPoint {
+    NormPoint {
+      x: Cube::adjust_point_sub(point.x),
+      y: Cube::adjust_point_sub(point.y),
+      z: Cube::adjust_point_sub(point.z),
+      w: point.w
+    }
   }
 
   // Cubeの中心位置はそのまま。回転だけする
-  pub fn rotate(&mut self, rad_x: f32, rad_y: f32, rad_z: f32, rad_step: f32) {
-    self.x_axis_rotate_rad = Cube::adjust_rad(self.x_axis_rotate_rad + rad_x, rad_step);
-    self.y_axis_rotate_rad = Cube::adjust_rad(self.y_axis_rotate_rad + rad_y, rad_step);
-    self.z_axis_rotate_rad = Cube::adjust_rad(self.z_axis_rotate_rad + rad_z, rad_step);
+  pub fn rotate(&mut self, rad_x: f32, rad_y: f32, rad_z: f32) {
+    self.pa = Cube::adjust_point(xyz_rotate(&self.pa, rad_x, rad_y, rad_z));
+    self.pb = Cube::adjust_point(xyz_rotate(&self.pb, rad_x, rad_y, rad_z));
+    self.pc = Cube::adjust_point(xyz_rotate(&self.pc, rad_x, rad_y, rad_z));
+    self.pd = Cube::adjust_point(xyz_rotate(&self.pd, rad_x, rad_y, rad_z));
+    self.pe = Cube::adjust_point(xyz_rotate(&self.pe, rad_x, rad_y, rad_z));
+    self.pf = Cube::adjust_point(xyz_rotate(&self.pf, rad_x, rad_y, rad_z));
+    self.pg = Cube::adjust_point(xyz_rotate(&self.pg, rad_x, rad_y, rad_z));
+    self.ph = Cube::adjust_point(xyz_rotate(&self.ph, rad_x, rad_y, rad_z));
   }
 
   fn get_surface_point_list(&self, surface: &CubeSurface) -> [&NormPoint; 4] {
@@ -196,11 +227,9 @@ impl Cube {
   }
 
   // 引数の点を現在の回転した座標にして返す
-  fn get_norm_point(&self, norm_point: &NormPoint) -> NormPoint {
-    let obj_normwk_point_1 = x_rotate(norm_point, self.x_axis_rotate_rad);
-    let obj_normwk_point_2 = y_rotate(&obj_normwk_point_1, self.y_axis_rotate_rad);
-    z_rotate(&obj_normwk_point_2, self.z_axis_rotate_rad)
-  }
+  // fn get_norm_point(&self, norm_point: &NormPoint) -> NormPoint {
+  //   xyz_rotate(norm_point, self.x_axis_rotate_rad, self.y_axis_rotate_rad, self.z_axis_rotate_rad)
+  // }
 
   fn get_target_point(&self, point_name: &str) -> &NormPoint {
     match point_name {
@@ -217,7 +246,7 @@ impl Cube {
   }
 
   pub fn rotate_test(&mut self) {
-    self.rotate(ROTATE_STEP, 0.0, 0.0, ROTATE_STEP);
+    self.rotate(ROTATE_STEP, 0.0, 0.0);
   }
 }
 
@@ -249,11 +278,11 @@ mod tests {
     assert_eq!(point_a1.y,  CUBE_SIZE / 2.0);
 
     testcube.rotate_test();
-    assert_eq!(testcube.x_axis_rotate_rad, ROTATE_STEP);
+    // assert_eq!(testcube.x_axis_rotate_rad, ROTATE_STEP);
 
     let point_a2 = testcube.get_abs_point("a");
-    let obj_norm_point2 = testcube.get_norm_point(&point_a2);
-    assert_eq!(point_a2.x as i32, -(CUBE_SIZE / 2.0) as i32);
+    // let obj_norm_point2 = testcube.get_norm_point(&point_a2);
+    // assert_eq!(point_a2.x as i32, -(CUBE_SIZE / 2.0) as i32);
 
     testcube.rotate_test();
     testcube.rotate_test();
