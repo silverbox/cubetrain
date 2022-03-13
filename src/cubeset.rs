@@ -26,6 +26,15 @@ pub struct RotateTarget {
   pub layer: RotateLayer,
   pub rad: f32
 }
+impl Default for RotateTarget {
+  fn default() -> Self {
+    Self {
+      axis: RotateAxis::X,
+      layer: RotateLayer::Positive,
+      rad: 0.0
+    }
+  }
+}
 
 pub struct CubeSet {
   white_center: Cube,
