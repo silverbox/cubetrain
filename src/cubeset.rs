@@ -315,17 +315,17 @@ impl CubeSet {
     for cube in self.get_target_cubes(rotate_target).into_iter() {
       match rotate_target.axis {
         RotateAxis::X => {
-          cube.rotate(rotate_target.rad, 0.0, 0.0, rotate_target.rad);
+          cube.rotate(rotate_target.rad, 0.0, 0.0);
           let new_center = xyz_rotate(&cube.center_point, rotate_target.rad, 0.0, 0.0);
           cube.center_point = new_center;
         },
         RotateAxis::Y => {
-          cube.rotate(0.0, rotate_target.rad, 0.0, rotate_target.rad);
+          cube.rotate(0.0, rotate_target.rad, 0.0);
           let new_center = xyz_rotate(&cube.center_point, 0.0, rotate_target.rad, 0.0);
           cube.center_point = new_center;
         },
         RotateAxis::Z => {
-          cube.rotate(0.0, 0.0, rotate_target.rad, rotate_target.rad);
+          cube.rotate(0.0, 0.0, rotate_target.rad);
           let new_center = xyz_rotate(&cube.center_point, 0.0, 0.0, rotate_target.rad);
           cube.center_point = new_center;
         }

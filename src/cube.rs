@@ -6,6 +6,7 @@ use super::cubic_calc::*;
 
 pub const ROTATE_STEP: f32 = PI / 16.0;
 pub const CUBE_SIZE: f32 = 100.0;
+const ADJUST_THRESHOLD: f32 = 0.0001;
 
 #[derive(PartialEq)]
 pub enum CubeColor {
@@ -166,16 +167,37 @@ impl Cube {
   //   (wk_multiple as f32) * rad_step
   // }
 
+  fn adjust_point_sub(val: f32) -> f32 {
+    if val > 1.0 - ADJUST_THRESHOLD && val < 1.0 + ADJUST_THRESHOLD {
+      1.0
+    } else if val > - ADJUST_THRESHOLD && val < ADJUST_THRESHOLD {
+      0.0
+    } else if val > -1.0 - ADJUST_THRESHOLD && val < -1.0 + ADJUST_THRESHOLD {
+      -1.0
+    } else {
+      val
+    }
+  }
+
+  fn adjust_point(point: NormPoint) -> NormPoint {
+    NormPoint {
+      x: Cube::adjust_point_sub(point.x),
+      y: Cube::adjust_point_sub(point.y),
+      z: Cube::adjust_point_sub(point.z),
+      w: point.w
+    }
+  }
+
   // Cubeの中心位置はそのまま。回転だけする
   pub fn rotate(&mut self, rad_x: f32, rad_y: f32, rad_z: f32) {
-    self.pa = xyz_rotate(&self.pa, rad_x, rad_y, rad_z);
-    self.pb = xyz_rotate(&self.pb, rad_x, rad_y, rad_z);
-    self.pc = xyz_rotate(&self.pc, rad_x, rad_y, rad_z);
-    self.pd = xyz_rotate(&self.pd, rad_x, rad_y, rad_z);
-    self.pe = xyz_rotate(&self.pe, rad_x, rad_y, rad_z);
-    self.pf = xyz_rotate(&self.pf, rad_x, rad_y, rad_z);
-    self.pg = xyz_rotate(&self.pg, rad_x, rad_y, rad_z);
-    self.ph = xyz_rotate(&self.ph, rad_x, rad_y, rad_z);
+    self.pa = Cube::adjust_point(xyz_rotate(&self.pa, rad_x, rad_y, rad_z));
+    self.pb = Cube::adjust_point(xyz_rotate(&self.pb, rad_x, rad_y, rad_z));
+    self.pc = Cube::adjust_point(xyz_rotate(&self.pc, rad_x, rad_y, rad_z));
+    self.pd = Cube::adjust_point(xyz_rotate(&self.pd, rad_x, rad_y, rad_z));
+    self.pe = Cube::adjust_point(xyz_rotate(&self.pe, rad_x, rad_y, rad_z));
+    self.pf = Cube::adjust_point(xyz_rotate(&self.pf, rad_x, rad_y, rad_z));
+    self.pg = Cube::adjust_point(xyz_rotate(&self.pg, rad_x, rad_y, rad_z));
+    self.ph = Cube::adjust_point(xyz_rotate(&self.ph, rad_x, rad_y, rad_z));
   }
 
   fn get_surface_point_list(&self, surface: &CubeSurface) -> [&NormPoint; 4] {
@@ -224,7 +246,7 @@ impl Cube {
   }
 
   pub fn rotate_test(&mut self) {
-    self.rotate(ROTATE_STEP, 0.0, 0.0, ROTATE_STEP);
+    self.rotate(ROTATE_STEP, 0.0, 0.0);
   }
 }
 
