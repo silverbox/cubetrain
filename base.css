@@ -1,0 +1,7 @@
+.operationtable{
+  border: medium solid #aaa;
+  border-collapse:  collapse;
+}
+.operationtable td,th{
+  border: solid 1px #ccc;
+}
