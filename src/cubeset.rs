@@ -362,7 +362,7 @@ impl CubeSet {
   }
 
   pub fn rotate_layer(&mut self, rotate_target: &RotateTarget) {
-    for cube in self.get_target_cubes(rotate_target).into_iter() {
+    for cube in self.get_target_cubes_mut(rotate_target).into_iter() {
       match rotate_target.axis {
         RotateAxis::X => {
           cube.rotate(rotate_target.rad, 0.0, 0.0);
@@ -384,7 +384,59 @@ impl CubeSet {
     };
   }
 
-  fn get_target_cubes(&mut self, rotate_target: &RotateTarget) -> Vec<&mut Cube> {
+  pub fn is_finished(&self) -> bool {
+    for wkaxis in [RotateAxis::X, RotateAxis::Y, RotateAxis::Z] {
+      for wklayer in [RotateLayer::Positive, RotateLayer::Negative] {
+        let check_target = RotateTarget {
+          axis: match wkaxis {
+            RotateAxis::X => RotateAxis::X,
+            RotateAxis::Y => RotateAxis::Y,
+            RotateAxis::Z => RotateAxis::Z
+          },
+          layer: match wklayer {
+            RotateLayer::Positive => RotateLayer::Positive,
+            _ => RotateLayer::Negative
+          },
+          rad: 0.0
+        };
+        let mut lastcolor = CubeColor::Black;
+        for cube in self.get_target_cubes(&check_target).into_iter() {
+          let val = match wklayer {
+            RotateLayer::Positive => 1.0,
+            _ => -1.0
+          };
+          let color = match wkaxis {
+            RotateAxis::X => cube.get_surface_color_by_pos(val, 0.0, 0.0),
+            RotateAxis::Y => cube.get_surface_color_by_pos(0.0, val, 0.0),
+            RotateAxis::Z => cube.get_surface_color_by_pos(0.0, 0.0, val)
+          };
+          if lastcolor == CubeColor::Black {
+            lastcolor = color;
+          } else if lastcolor != color {
+            return false;
+          };
+        };
+      };
+    };
+    true
+  }
+
+  fn get_target_cubes(&self, rotate_target: &RotateTarget) -> Vec<&Cube> {
+    let mut retcubes = vec![];
+    for cube in self.get_all_cube().into_iter() {
+      let chkval = match rotate_target.axis {
+        RotateAxis::X => cube.center_point.x,
+        RotateAxis::Y => cube.center_point.y,
+        RotateAxis::Z => cube.center_point.z
+      };
+      if CubeSet::is_target_layer(chkval, &rotate_target.layer) {
+        retcubes.push(cube);
+      };
+    };
+    retcubes
+  }
+
+  fn get_target_cubes_mut(&mut self, rotate_target: &RotateTarget) -> Vec<&mut Cube> {
     // let mut retcubes: Vec<&mut Cube> = Vec::with_capacity(9);
     let mut retcubes = vec![];
     for cube in self.get_all_cube_mut().into_iter() {
@@ -398,32 +450,6 @@ impl CubeSet {
       };
     };
     retcubes
-  }
-
-  pub fn rotate_test(&mut self) {
-    let rt = RotateTarget {
-      axis: RotateAxis::X,
-      layer: RotateLayer::Positive,
-      rad: ROTATE_STEP
-    };
-    self.rotate_layer(&rt)
-    // for cube in self.get_target_cubes(&rt).iter_mut() {
-    //   cube.rotate(ROTATE_STEP, 0.0, 0.0, ROTATE_STEP);
-    // }
-  }
-
-  fn get_test_cubes(&mut self) -> [&mut Cube; 9] {
-    [
-      &mut self.white_lime_edge,
-      &mut self.white_orange_lime_corner,
-      &mut self.white_lime_red_corner,
-      &mut self.lime_center,
-      &mut self.red_lime_edge,
-      &mut self.lime_orange_edge,
-      &mut self.yellow_lime_edge,
-      &mut self.yellow_red_lime_corner,
-      &mut self.yellow_lime_orange_corner
-    ]
   }
 
   fn is_target_layer(axis_val: f32, layer: &RotateLayer) -> bool {
@@ -459,6 +485,32 @@ impl CubeSet {
     } else if cube.center_point.z < - (CUBE_SIZE - threshold) && cube.center_point.z > - (CUBE_SIZE + threshold) {
       cube.center_point.z = - CUBE_SIZE;
     }
+  }
+
+  fn get_test_cubes(&mut self) -> [&mut Cube; 9] {
+    [
+      &mut self.white_lime_edge,
+      &mut self.white_orange_lime_corner,
+      &mut self.white_lime_red_corner,
+      &mut self.lime_center,
+      &mut self.red_lime_edge,
+      &mut self.lime_orange_edge,
+      &mut self.yellow_lime_edge,
+      &mut self.yellow_red_lime_corner,
+      &mut self.yellow_lime_orange_corner
+    ]
+  }
+
+  pub fn rotate_test(&mut self) {
+    let rt = RotateTarget {
+      axis: RotateAxis::X,
+      layer: RotateLayer::Positive,
+      rad: ROTATE_STEP
+    };
+    self.rotate_layer(&rt)
+    // for cube in self.get_target_cubes(&rt).iter_mut() {
+    //   cube.rotate(ROTATE_STEP, 0.0, 0.0, ROTATE_STEP);
+    // }
   }
 }
 
