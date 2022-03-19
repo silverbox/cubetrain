@@ -118,7 +118,6 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             }
         },
         Msg::Rendered => {
-            draw(model);
             // We want to call `.skip` to prevent infinite loop.
             // (However infinite loops are useful for animations.)
             if model.animation_countdown > 0 {
@@ -128,16 +127,17 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             } else {
                 orders.after_next_render(|_| Msg::Rendered).skip();
             }
+            draw(model, model.animation_countdown != 0);
         }
     }
 }
 
-fn draw(model: &Model) {
+fn draw(model: &Model, on_animation: bool) {
     let canvas_element = model.canvas.get().expect("get canvas element");
     let subcanvas_element = model.subcanvas.get().expect("get sub canvas element");
 
-    draw_cubeset(&canvas_element, &model.cubeset, &model.camera);
-    draw_cubeset(&subcanvas_element, &model.cubeset, &model.subcamera);
+    draw_cubeset(&canvas_element, &model.cubeset, &model.camera, on_animation);
+    draw_cubeset(&subcanvas_element, &model.cubeset, &model.subcamera, on_animation);
 }
 
 // ------ ------

@@ -21,12 +21,17 @@ use super::cubic_calc::ViewPoint2D;
 use super::cubic_calc::perspective_projection;
 use super::cubic_calc::viewing_transform;
 
-pub fn draw_cubeset(canvas_element: &HtmlCanvasElement, cubeset: &CubeSet, camera: &CameraModel) {
+pub fn draw_cubeset(canvas_element: &HtmlCanvasElement, cubeset: &CubeSet, camera: &CameraModel, on_animation: bool) {
     let ctx = seed::canvas_context_2d(canvas_element);
 
     // clear canvas
     ctx.begin_path();
     ctx.clear_rect(0., 0., 800., 800.);
+    if cubeset.is_finished() && !on_animation {
+        ctx.rect(0., 0., 500.0, 500.0);
+        ctx.set_fill_style(&JsValue::from_str("cyan"));
+        ctx.fill();
+    }
 
     let mut wkvec:Vec<&Cube> = cubeset.get_all_cube().into_iter().map(|item| item).collect();
     wkvec.sort_by(|a, b| {

@@ -6,7 +6,7 @@ use super::cubic_calc::*;
 
 pub const ROTATE_STEP: f32 = PI / 16.0;
 pub const CUBE_SIZE: f32 = 100.0;
-const ADJUST_THRESHOLD: f32 = 0.0001;
+const ADJUST_THRESHOLD: f32 = 0.001;
 
 #[derive(PartialEq)]
 pub enum CubeColor {
@@ -122,6 +122,54 @@ impl Cube {
     let obj_norm_point = &self.get_target_point(point_name);
     let scaled_point = scale(&obj_norm_point, self.size, self.size, self.size);
     shift(&scaled_point, self.center_point.x, self.center_point.y, self.center_point.z)
+  }
+
+  pub fn get_surface_color_by_pos(&self, x: f32, y: f32, z: f32 ) -> CubeColor {
+    let a_is = Cube::is_target_point(&self.pa, x, y, z);
+    let b_is = Cube::is_target_point(&self.pb, x, y, z);
+    let c_is = Cube::is_target_point(&self.pc, x, y, z);
+    let d_is = Cube::is_target_point(&self.pd, x, y, z);
+    let e_is = Cube::is_target_point(&self.pe, x, y, z);
+    let f_is = Cube::is_target_point(&self.pf, x, y, z);
+    let g_is = Cube::is_target_point(&self.pg, x, y, z);
+    let h_is = Cube::is_target_point(&self.ph, x, y, z);
+    if a_is && b_is && c_is && d_is {
+      Cube::convert_refcolor_to_color(&self.color_abcd)
+    } else if a_is && b_is && e_is && f_is {
+      Cube::convert_refcolor_to_color(&self.color_abef)
+    } else if b_is && c_is && f_is && g_is {
+      Cube::convert_refcolor_to_color(&self.color_bcfg)
+    } else if c_is && d_is && g_is && h_is {
+      Cube::convert_refcolor_to_color(&self.color_cdgh)
+    } else if d_is && a_is && e_is && h_is {
+      Cube::convert_refcolor_to_color(&self.color_dahe)
+    } else {
+      Cube::convert_refcolor_to_color(&self.color_efgh)
+    }
+  }
+
+  fn convert_refcolor_to_color(color: &CubeColor)-> CubeColor {
+    match color {
+      CubeColor::White => CubeColor::White,
+      CubeColor::Yellow => CubeColor::Yellow,
+      CubeColor::Blue => CubeColor::Blue,   // 青
+      CubeColor::Red => CubeColor::Red, // 赤
+      CubeColor::Orange => CubeColor::Orange, // オレンジ
+      CubeColor::Lime => CubeColor::Lime,    // 黄緑
+      CubeColor::Black => CubeColor::Black
+    }
+  }
+
+  fn is_target_point(point: &NormPoint, x: f32, y: f32, z: f32) -> bool {
+    return if x != 0.0 && point.x * x > 0.0 {
+      true
+    } else if y != 0.0 && point.y * y > 0.0 {
+      true
+    } else if z != 0.0 && point.z * z > 0.0 {
+      true
+    } else {
+      false
+    }
   }
 
   // 回転した面の視点からの可視を判断。正方形の３つの点を使った三角形で処理する
