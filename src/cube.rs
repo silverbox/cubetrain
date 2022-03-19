@@ -4,7 +4,7 @@
 // use super::cubic_calc::Point;
 use super::cubic_calc::*;
 
-pub const ROTATE_STEP: f32 = PI / 16.0;
+// pub const ROTATE_STEP: f32 = PI / 16.0;
 pub const CUBE_SIZE: f32 = 100.0;
 const ADJUST_THRESHOLD: f32 = 0.001;
 
@@ -20,17 +20,17 @@ pub enum CubeColor {
 }
 
 impl CubeColor {
-  pub const fn as_int(&self) -> i32 {
-      match self {
-          Self::White => 0xffffff,
-          Self::Yellow => 0xffff00,
-          Self::Blue => 0x0000ff,
-          Self::Red => 0xff4500,
-          Self::Orange => 0xff4500,
-          Self::Lime => 0x00ff00,
-          Self::Black => 0x000000
-      }
-  }
+  // pub const fn as_int(&self) -> i32 {
+  //     match self {
+  //         Self::White => 0xffffff,
+  //         Self::Yellow => 0xffff00,
+  //         Self::Blue => 0x0000ff,
+  //         Self::Red => 0xff4500,
+  //         Self::Orange => 0xff4500,
+  //         Self::Lime => 0x00ff00,
+  //         Self::Black => 0x000000
+  //     }
+  // }
   pub const fn as_css_str(&self) -> &str {
     match self {
         Self::White => "white",
@@ -261,18 +261,18 @@ impl Cube {
     }
   }
 
-  fn get_surface_color(&self, surface: &CubeSurface) -> &CubeColor {
-    // 法線ベクトルを求めるために見せたい面の点を半時計回りにセットする
-    match surface {
-      CubeSurface::ABCD => &self.color_abcd,
-      CubeSurface::ABEF => &self.color_abef,
-      CubeSurface::BCFG => &self.color_bcfg,
-      CubeSurface::CDGH => &self.color_cdgh,
-      CubeSurface::DAEH => &self.color_dahe,
-      CubeSurface::EFGH => &self.color_efgh,
-      // _ => &CubeColor::Black
-    }
-  }
+  // fn get_surface_color(&self, surface: &CubeSurface) -> &CubeColor {
+  //   // 法線ベクトルを求めるために見せたい面の点を半時計回りにセットする
+  //   match surface {
+  //     CubeSurface::ABCD => &self.color_abcd,
+  //     CubeSurface::ABEF => &self.color_abef,
+  //     CubeSurface::BCFG => &self.color_bcfg,
+  //     CubeSurface::CDGH => &self.color_cdgh,
+  //     CubeSurface::DAEH => &self.color_dahe,
+  //     CubeSurface::EFGH => &self.color_efgh,
+  //     // _ => &CubeColor::Black
+  //   }
+  // }
 
   // 引数の点を現在の回転した座標にして返す
   // fn get_norm_point(&self, norm_point: &NormPoint) -> NormPoint {
@@ -293,9 +293,9 @@ impl Cube {
     }
   }
 
-  pub fn rotate_test(&mut self) {
-    self.rotate(ROTATE_STEP, 0.0, 0.0);
-  }
+  // pub fn rotate_test(&mut self) {
+  //   self.rotate(ROTATE_STEP, 0.0, 0.0);
+  // }
 }
 
 // ------ ------

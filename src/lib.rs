@@ -13,7 +13,6 @@ mod cubic_calc;
 mod draw_manager;
 
 use cube::CubeColor;
-use cube::ROTATE_STEP;
 use cubeset::CubeSet;
 use cubeset::RotateAxis;
 use cubeset::RotateLayer;
@@ -23,12 +22,14 @@ use cubic_calc::CameraVec;
 use cubic_calc::ViewFrustum;
 use cubic_calc::CameraModel;
 use draw_manager::draw_cubeset;
+use draw_manager::CANVAS_W;
+use draw_manager::CANVAS_H;
 
 // ------ ------
 //     Init
 // ------ ------
 
-const subcamera_alt: CameraModel = CameraModel {
+const SUBCAMERA_ALT: CameraModel = CameraModel {
     pos: CameraVec { x: -200.0, y: -200.0, z: -200.0 },
     x_axis: CameraVec { x: 0.706, y:  0.0  , z: -0.706 },
     y_axis: CameraVec { x: 0.405, y: -0.810, z:  0.405 }, // vec X * vec Z
@@ -40,7 +41,6 @@ const subcamera_alt: CameraModel = CameraModel {
 fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
     orders.after_next_render(|_| Msg::Rendered);
     Model { 
-        counter: 0,
         scramble_step: 25,
         animaion_speed: 50,
         animation_rotate_target: RotateTarget::default(),
@@ -48,7 +48,7 @@ fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
         cubeset: CubeSet::default(),
         camera: CameraModel::default(),
         canvas: ElRef::<HtmlCanvasElement>::default(),
-        subcamera: subcamera_alt,
+        subcamera: SUBCAMERA_ALT,
         subcanvas: ElRef::<HtmlCanvasElement>::default(),
     }
 }
@@ -59,7 +59,6 @@ fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
 
 // `Model` describes our app state.
 struct Model {
-    counter: i32,
     scramble_step: i32,
     animaion_speed: i32,
     animation_rotate_target: RotateTarget,
@@ -91,10 +90,10 @@ enum Msg {
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
         Msg::AnimationSpeedChanged(input_val) => {
-            model.animaion_speed = input_val.parse().unwrap();;
+            model.animaion_speed = input_val.parse().unwrap();
         },
         Msg::ScrambleStepChanged(input_val) => {
-            model.scramble_step = input_val.parse().unwrap();;
+            model.scramble_step = input_val.parse().unwrap();
         },
         Msg::Rotate(rotate_target) => {
             if model.animation_countdown > 0 {
@@ -108,12 +107,11 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             };
         },
         Msg::ResetPosition => {
-            // model.counter = model.animaion_speed;
             model.cubeset = CubeSet::default();
         },
         Msg::ScramblePosition => {
             model.cubeset = CubeSet::default();
-            for i in 0..model.scramble_step {
+            for _i in 0..model.scramble_step {
                 model.cubeset.rotate_layer(&RotateTarget::random(PI / 2.0));
             }
         },
@@ -125,6 +123,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 model.cubeset.rotate_layer(&model.animation_rotate_target);
                 orders.after_next_render(|_| Msg::Rendered);
             } else {
+                model.cubeset.adjust_posistion(&model.animation_rotate_target);
                 orders.after_next_render(|_| Msg::Rendered).skip();
             }
             draw(model, model.animation_countdown != 0);
@@ -457,8 +456,8 @@ fn view(model: &Model) -> Node<Msg> {
         canvas![
             el_ref(&model.canvas),
             attrs![
-                At::Width => px(400),
-                At::Height => px(400),
+                At::Width => px(CANVAS_W),
+                At::Height => px(CANVAS_H),
             ],
             style![
                 St::Border => "1px solid black",
@@ -467,8 +466,8 @@ fn view(model: &Model) -> Node<Msg> {
         canvas![
             el_ref(&model.subcanvas),
             attrs![
-                At::Width => px(400),
-                At::Height => px(400),
+                At::Width => px(CANVAS_W),
+                At::Height => px(CANVAS_H),
             ],
             style![
                 St::Border => "1px solid black",

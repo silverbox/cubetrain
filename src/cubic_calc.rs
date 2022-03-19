@@ -88,41 +88,41 @@ pub fn scale(point: &NormPoint, sx: f32, sy: f32, sz: f32) -> NormPoint {
   }
 }
 
-// x軸中心回転
-pub fn x_rotate(point: &NormPoint, x_rad: f32) -> NormPoint {
-  let sin = x_rad.sin();
-  let cos = x_rad.cos();
-  NormPoint {
-    x: point.x,
-    y: point.y * cos - point.z * sin,
-    z: point.y * sin + point.z * cos,
-    w: point.w
-  }
-}
+// // x軸中心回転
+// pub fn x_rotate(point: &NormPoint, x_rad: f32) -> NormPoint {
+//   let sin = x_rad.sin();
+//   let cos = x_rad.cos();
+//   NormPoint {
+//     x: point.x,
+//     y: point.y * cos - point.z * sin,
+//     z: point.y * sin + point.z * cos,
+//     w: point.w
+//   }
+// }
 
-// y軸中心回転
-pub fn y_rotate(point: &NormPoint, y_rad: f32) -> NormPoint {
-  let sin = y_rad.sin();
-  let cos = y_rad.cos();
-  NormPoint {
-    x: point.x * cos + point.z * sin,
-    y: point.y,
-    z: point.z * cos - point.x * sin,
-    w: point.w
-  }
-}
+// // y軸中心回転
+// pub fn y_rotate(point: &NormPoint, y_rad: f32) -> NormPoint {
+//   let sin = y_rad.sin();
+//   let cos = y_rad.cos();
+//   NormPoint {
+//     x: point.x * cos + point.z * sin,
+//     y: point.y,
+//     z: point.z * cos - point.x * sin,
+//     w: point.w
+//   }
+// }
 
-// z軸中心回転
-pub fn z_rotate(point: &NormPoint, z_rad: f32) -> NormPoint {
-  let sin = z_rad.sin();
-  let cos = z_rad.cos();
-  NormPoint {
-    x: point.x * cos - point.y * sin,
-    y: point.x * sin + point.y * cos,
-    z: point.z,
-    w: point.w
-  }
-}
+// // z軸中心回転
+// pub fn z_rotate(point: &NormPoint, z_rad: f32) -> NormPoint {
+//   let sin = z_rad.sin();
+//   let cos = z_rad.cos();
+//   NormPoint {
+//     x: point.x * cos - point.y * sin,
+//     y: point.x * sin + point.y * cos,
+//     z: point.z,
+//     w: point.w
+//   }
+// }
 
 // オイラー角回転
 pub fn xyz_rotate(point: &NormPoint, x_rad: f32, y_rad: f32, z_rad: f32) -> NormPoint {
@@ -165,18 +165,18 @@ pub fn viewing_transform(camera_point: &CameraAxisPoint, vf: &ViewFrustum) -> Vi
   }
 }
 
-pub fn center_point(point_a: &ViewPoint2D, point_b: &ViewPoint2D, point_c: &ViewPoint2D) -> ViewPoint2D {
-  ViewPoint2D {
-    x: (point_a.x + point_b.x + point_c.x) / 3.0 ,
-    y: (point_a.y + point_b.y + point_c.y) / 3.0 ,
-    z: (point_a.z + point_b.z + point_c.z) / 3.0 ,
-    w: (point_a.w + point_b.w + point_c.w) / 3.0
-  }
-}
+// pub fn center_point(point_a: &ViewPoint2D, point_b: &ViewPoint2D, point_c: &ViewPoint2D) -> ViewPoint2D {
+//   ViewPoint2D {
+//     x: (point_a.x + point_b.x + point_c.x) / 3.0 ,
+//     y: (point_a.y + point_b.y + point_c.y) / 3.0 ,
+//     z: (point_a.z + point_b.z + point_c.z) / 3.0 ,
+//     w: (point_a.w + point_b.w + point_c.w) / 3.0
+//   }
+// }
 
-pub fn get_permil(val: f32) -> i32 {
-  (val * 1000.0) as i32
-}
+// pub fn get_permil(val: f32) -> i32 {
+//   (val * 1000.0) as i32
+// }
 
 // ------ ------
 //     Test

@@ -4,7 +4,6 @@
 use rand::prelude::*;
 
 use super::cube::Cube;
-use super::cube::ROTATE_STEP;
 use super::cube::CUBE_SIZE;
 use super::cube::CubeColor;
 use super::cubic_calc::*;
@@ -380,6 +379,11 @@ impl CubeSet {
           cube.center_point = new_center;
         }
       };
+    };
+  }
+
+  pub fn adjust_posistion(&mut self, rotate_target: &RotateTarget) {
+    for cube in self.get_target_cubes_mut(rotate_target).into_iter() {
       CubeSet::adjust_position(cube);
     };
   }
@@ -424,12 +428,7 @@ impl CubeSet {
   fn get_target_cubes(&self, rotate_target: &RotateTarget) -> Vec<&Cube> {
     let mut retcubes = vec![];
     for cube in self.get_all_cube().into_iter() {
-      let chkval = match rotate_target.axis {
-        RotateAxis::X => cube.center_point.x,
-        RotateAxis::Y => cube.center_point.y,
-        RotateAxis::Z => cube.center_point.z
-      };
-      if CubeSet::is_target_layer(chkval, &rotate_target.layer) {
+      if CubeSet::is_target_layer(&rotate_target, cube) {
         retcubes.push(cube);
       };
     };
@@ -437,28 +436,27 @@ impl CubeSet {
   }
 
   fn get_target_cubes_mut(&mut self, rotate_target: &RotateTarget) -> Vec<&mut Cube> {
-    // let mut retcubes: Vec<&mut Cube> = Vec::with_capacity(9);
     let mut retcubes = vec![];
     for cube in self.get_all_cube_mut().into_iter() {
-      let chkval = match rotate_target.axis {
-        RotateAxis::X => cube.center_point.x,
-        RotateAxis::Y => cube.center_point.y,
-        RotateAxis::Z => cube.center_point.z
-      };
-      if CubeSet::is_target_layer(chkval, &rotate_target.layer) {
+      if CubeSet::is_target_layer(&rotate_target, cube) {
         retcubes.push(cube);
       };
     };
     retcubes
   }
 
-  fn is_target_layer(axis_val: f32, layer: &RotateLayer) -> bool {
+  fn is_target_layer(rotate_target: &RotateTarget, cube: &Cube) -> bool {
     let threshold = CUBE_SIZE / 5.0;
-    match layer {
+    let chkval = match rotate_target.axis {
+      RotateAxis::X => cube.center_point.x,
+      RotateAxis::Y => cube.center_point.y,
+      RotateAxis::Z => cube.center_point.z
+    };
+    match rotate_target.layer {
       RotateLayer::All => true,
-      RotateLayer::Positive => axis_val > threshold,
-      RotateLayer::Neutral => {axis_val >= -threshold && axis_val <= threshold},
-      RotateLayer::Negative => axis_val < -threshold
+      RotateLayer::Positive => chkval > threshold,
+      RotateLayer::Neutral => {chkval >= -threshold && chkval <= threshold},
+      RotateLayer::Negative => chkval < -threshold
     }
   }
 
@@ -487,31 +485,31 @@ impl CubeSet {
     }
   }
 
-  fn get_test_cubes(&mut self) -> [&mut Cube; 9] {
-    [
-      &mut self.white_lime_edge,
-      &mut self.white_orange_lime_corner,
-      &mut self.white_lime_red_corner,
-      &mut self.lime_center,
-      &mut self.red_lime_edge,
-      &mut self.lime_orange_edge,
-      &mut self.yellow_lime_edge,
-      &mut self.yellow_red_lime_corner,
-      &mut self.yellow_lime_orange_corner
-    ]
-  }
+  // fn get_test_cubes(&mut self) -> [&mut Cube; 9] {
+  //   [
+  //     &mut self.white_lime_edge,
+  //     &mut self.white_orange_lime_corner,
+  //     &mut self.white_lime_red_corner,
+  //     &mut self.lime_center,
+  //     &mut self.red_lime_edge,
+  //     &mut self.lime_orange_edge,
+  //     &mut self.yellow_lime_edge,
+  //     &mut self.yellow_red_lime_corner,
+  //     &mut self.yellow_lime_orange_corner
+  //   ]
+  // }
 
-  pub fn rotate_test(&mut self) {
-    let rt = RotateTarget {
-      axis: RotateAxis::X,
-      layer: RotateLayer::Positive,
-      rad: ROTATE_STEP
-    };
-    self.rotate_layer(&rt)
-    // for cube in self.get_target_cubes(&rt).iter_mut() {
-    //   cube.rotate(ROTATE_STEP, 0.0, 0.0, ROTATE_STEP);
-    // }
-  }
+  // pub fn rotate_test(&mut self) {
+  //   let rt = RotateTarget {
+  //     axis: RotateAxis::X,
+  //     layer: RotateLayer::Positive,
+  //     rad: ROTATE_STEP
+  //   };
+  //   self.rotate_layer(&rt)
+  //   // for cube in self.get_target_cubes(&rt).iter_mut() {
+  //   //   cube.rotate(ROTATE_STEP, 0.0, 0.0, ROTATE_STEP);
+  //   // }
+  // }
 }
 
 
