@@ -158,7 +158,7 @@ impl Cube {
       z: (rot_p1.z + rot_p2.z + rot_p3.z) / 3.0
     };
 
-    (normal_vec.x * center_vec.x) + (normal_vec.y * center_vec.y) + (normal_vec.z * center_vec.z) < 0.0
+    ((normal_vec.x * center_vec.x) + (normal_vec.y * center_vec.y) + (normal_vec.z * center_vec.z)) * camera.pos.x < 0.0
   }
 
   // fn adjust_rad(rad: f32, rad_step: f32) -> f32 {

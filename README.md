@@ -1,4 +1,23 @@
-# インストール
+# ルービック・キューブ訓練アプリ
+
+## 機能
+
+#### 実装済み
+
+- 標準回転
+  - レイヤ、軸単位での回転
+  - 軸単位での回転
+- 標準ビュー（固定視点からの参照）
+
+#### 未実装
+
+- 自動シャッフル
+- キー操作での回転
+- サブビューで反対側などを参照
+- 各種ステップ毎に揃える対象以外の面を黒塗り
+- 任意のステップにてキューブの状態を保持し、復帰出来る
+
+# セットアップ１（rust,cargo）
 
 ## Cargo
 
@@ -17,7 +36,7 @@ cargo install cargo-make
 cargo install cargo-generate
 ```
 
-# seed
+# セットアップ２（seed）
 
 ## プロジェクト新規作成
 
@@ -41,6 +60,10 @@ https://github.com/seed-rs/seed-quickstart
 
 # 各種参考にさせていただいたページ
 
+## ルービック・キューブのルールに関して
+
+- [3x3x3 回転記号](https://tribox.com/3x3x3/solution/notation/)
+
 ## Rustの技術
 
 ### 公式ページ
@@ -52,32 +75,36 @@ https://github.com/seed-rs/seed-quickstart
 
 #### ソート実行に関して
 
-https://uma0317.github.io/rust-cookbook-ja/algorithms/sorting.html
+- [ベクタのソート](https://uma0317.github.io/rust-cookbook-ja/algorithms/sorting.html)
 
 ## 3Dオブジェクトの描画
 
 ### 2Dへの投影に関して
 
 #### 3D座標変換知識
-https://sbfl.net/blog/2016/09/05/webgl2-tutorial-3d-knowledge/
-http://www.cgg.cs.tsukuba.ac.jp/~endo/lecture/2020/cgbasics/03/03.pdf
+
+- [WebGL2入門 3D知識編](https://sbfl.net/blog/2016/09/05/webgl2-tutorial-3d-knowledge/)
+- [コンピュータグラフィックス基礎](http://www.cgg.cs.tsukuba.ac.jp/~endo/lecture/2020/cgbasics/03/03.pdf)
 
 #### ワールド座標からカメラ座標への変換
-https://mem-archive.com/2018/02/17/post-74/
+
+- [カメラ外部パラメータとは](https://mem-archive.com/2018/02/17/post-74/)
 
 #### カメラY軸に関して
-https://yttm-work.jp/gmpg/gmpg_0003.html
+
+- [ビュー座標変換](https://yttm-work.jp/gmpg/gmpg_0003.html)
 
 #### 透視変換の行列式
-http://kondolab.org/archive/2010/research/cadcgtext/Chap5/Chap504.html
+
+- [5.4　透視図の数学](http://kondolab.org/archive/2010/research/cadcgtext/Chap5/Chap504.html)
 
 ### 隠線処理
 
-http://www.myu.ac.jp/~makanae/CG/cg1_14.htm
+- [隠線処理の手法](http://www.myu.ac.jp/~makanae/CG/cg1_14.htm)
 
 ### オイラー角
 
-https://www.sky-engin.jp/blog/eulerian-angles/
+- [スカイ技術研究所ブログ](https://www.sky-engin.jp/blog/eulerian-angles/)
 
 # 以降、当時トライしたが導入断念したフロー
 

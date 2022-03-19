@@ -1,6 +1,8 @@
 #[allow(dead_code)]
 #[allow(clippy::wildcard_imports)]
 
+use rand::prelude::*;
+
 use super::cube::Cube;
 use super::cube::ROTATE_STEP;
 use super::cube::CUBE_SIZE;
@@ -16,11 +18,40 @@ pub enum RotateAxis {
   Y,
   Z
 }
+impl RotateAxis {
+  fn random() -> Self {
+    let mut rng = rand::thread_rng();
+    let axisval: f32 = rng.gen::<f32>() * 3.0;
+    if axisval < 1.0 {
+      RotateAxis::X
+    } else if axisval < 2.0 {
+      RotateAxis::Y
+    } else {
+      RotateAxis::Z
+    }
+  }
+}
+
 pub enum RotateLayer {
   Positive,
   Neutral,
-  Negative
+  Negative,
+  All
 }
+impl RotateLayer {
+  fn random() -> Self {
+    let mut rng = rand::thread_rng();
+    let axisval: f32 = rng.gen::<f32>() * 3.0;
+    if axisval < 1.0 {
+      RotateLayer::Positive
+    } else if axisval < 2.0 {
+      RotateLayer::Neutral
+    } else {
+      RotateLayer::Negative
+    }
+  }
+}
+
 pub struct RotateTarget {
   pub axis: RotateAxis,
   pub layer: RotateLayer,
@@ -32,6 +63,16 @@ impl Default for RotateTarget {
       axis: RotateAxis::X,
       layer: RotateLayer::Positive,
       rad: 0.0
+    }
+  }
+}
+impl RotateTarget {
+  pub fn random(rad: f32) -> Self {
+    let mut rng = rand::thread_rng();
+    Self {
+      axis: RotateAxis::random(),
+      layer: RotateLayer::random(),
+      rad: if rng.gen::<bool>() { rad } else { -rad }
     }
   }
 }
@@ -388,6 +429,7 @@ impl CubeSet {
   fn is_target_layer(axis_val: f32, layer: &RotateLayer) -> bool {
     let threshold = CUBE_SIZE / 5.0;
     match layer {
+      RotateLayer::All => true,
       RotateLayer::Positive => axis_val > threshold,
       RotateLayer::Neutral => {axis_val >= -threshold && axis_val <= threshold},
       RotateLayer::Negative => axis_val < -threshold
@@ -497,5 +539,10 @@ mod tests {
     // assert_eq!(cube_wol.x_axis_rotate_rad, r_step);
     // assert_eq!(cube_wol.y_axis_rotate_rad, 0.0);
     // assert_eq!(cube_wol.z_axis_rotate_rad, r_step);
+  }
+
+  #[test]
+  fn random_target_test() {
+    let rotate_rand = RotateTarget::random(PI / 2.0);
   }
 }
