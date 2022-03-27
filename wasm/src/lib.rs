@@ -481,8 +481,8 @@ fn view(model: &Model) -> Node<Msg> {
 // ------ ------
 
 // (This function is invoked by `init` function in `index.html`.)
-#[wasm_bindgen(start)]
-pub fn start() {
+#[wasm_bindgen]
+pub fn start(targetid: &str) {
     // Mount the `app` to the element with the `id` "app".
-    App::start("app", init, update, view);
+    App::start(targetid, init, update, view);
 }

@@ -10,10 +10,13 @@
 </head>
 
 <body>
-    <section id="app"></section>
+    <section id="wasmelemid"></section>
     <script type="module">
         import init from '/pkg/package.js';
-        init('/pkg/package_bg.wasm');
+        import { start } from '/pkg/package.js';
+        init('/pkg/package_bg.wasm').then(() => {
+            start("wasmelemid");
+        });
     </script>
 </body>
 

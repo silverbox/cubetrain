@@ -59,9 +59,9 @@ cargo make serve
 https://github.com/seed-rs/seed-quickstart
 
 
-# セットアップ２
+# セットアップ３（vue）
 
-## vue初期開発
+## vue開発準備
 
 コンテナ起動してvueのコンテナへログイン。
 
@@ -78,7 +78,34 @@ yarn global add @vue/cli
 vue create cubetrain
 ```
 
+## seedとの連携
 
+### seedコンパイル
+
+```
+cd wasm
+cargo make build_release
+cd ..
+```
+
+### vue側へコピー
+
+vue側のコンパイルに必要になるので、`package.js`をvue側へコピー。wasmとjsのインターフェース部が変わった時は再処理する。
+
+```
+cp wasm/pkg/package.js vue/cubetrain/src/wasm/package.js
+```
+
+以下の行をコピー先の`package.js`の最初に追記
+
+```
+/* eslint-disable */
+```
+
+### アクセス
+
+package_bg.wasmはnginx経由で取得する事になるので、`docker-compose up`実行後、以下のアドレスにアクセス。  
+http://localhost:8880
 
 
 # 各種参考にさせていただいたページ
