@@ -58,6 +58,29 @@ cargo make serve
 
 https://github.com/seed-rs/seed-quickstart
 
+
+# セットアップ２
+
+## vue初期開発
+
+コンテナ起動してvueのコンテナへログイン。
+
+```bash
+sudo docker-compose build
+sudo docker-compose up
+sudo docker exec -it cubetrain-vuefront bash
+```
+
+プロジェクト作成
+
+```bash
+yarn global add @vue/cli
+vue create cubetrain
+```
+
+
+
+
 # 各種参考にさせていただいたページ
 
 ## ルービック・キューブのルールに関して
