@@ -13,7 +13,7 @@ export default defineComponent({
     const onMountedOperation = () => {
       console.log("mounted:" + id.value)
       init('/wasm/package_bg.wasm').then(() => {
-          start("wasmelemid");
+          start(id.value);
       });
     }
     onMounted(onMountedOperation);

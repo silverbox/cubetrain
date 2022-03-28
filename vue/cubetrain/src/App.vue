@@ -1,8 +1,16 @@
 <template>
   <v-app>
     <v-main>
-      <ControlPanel/>
-      <WasmScreen id="wasmelemid"/>
+      <v-container class="grey lighten-5">
+        <v-row>
+          <v-col md="4">
+            <ControlPanel/>
+          </v-col>
+          <v-col md="8">
+            <WasmScreen id="wasmelemid"/>
+          </v-col>
+        </v-row>
+      </v-container>
     </v-main>
   </v-app>
 </template>

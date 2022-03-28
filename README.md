@@ -90,10 +90,11 @@ cd ..
 
 ### vue側へコピー
 
-vue側のコンパイルに必要になるので、`package.js`をvue側へコピー。wasmとjsのインターフェース部が変わった時は再処理する。
+vue側のコンパイルに必要になるので、`package.js`、`package_bg.wasm`をvue側へコピー。wasmとjsのインターフェース部が変わった時は再処理する。
 
 ```
 cp wasm/pkg/package.js vue/cubetrain/src/wasm/package.js
+cp wasm/pkg/package_bg.wasm vue/cubetrain/src/wasm/package_bg.wasm
 ```
 
 以下の行をコピー先の`package.js`の最初に追記
