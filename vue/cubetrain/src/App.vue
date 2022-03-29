@@ -4,7 +4,10 @@
       <v-container class="grey lighten-5">
         <v-row>
           <v-col md="4">
-            <ControlPanel/>
+            <ControlPanel
+              defspeed="50"
+              defscramblestep="25"
+            />
           </v-col>
           <v-col md="8">
             <WasmScreen id="wasmelemid"/>
@@ -30,7 +33,6 @@ export default defineComponent({
 
   data () {
     return {
-      //
     }
   },
 })
