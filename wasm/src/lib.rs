@@ -5,6 +5,7 @@
 
 use seed::{prelude::*, *};
 use web_sys::HtmlCanvasElement;
+use enclose::enc;
 extern crate rand;
 
 mod cube;
@@ -481,8 +482,43 @@ fn view(model: &Model) -> Node<Msg> {
 // ------ ------
 
 // (This function is invoked by `init` function in `index.html`.)
-#[wasm_bindgen(start)]
-pub fn start() {
+#[wasm_bindgen]
+pub fn start(targetid: &str) -> Box<[JsValue]> {
     // Mount the `app` to the element with the `id` "app".
-    App::start("app", init, update, view);
+    let app = App::start(targetid, init, update, view);
+    create_closures_for_js(&app)
+}
+
+// ------ ------
+//  Interface 
+// ------ ------
+
+fn create_closures_for_js(app: &App<Msg, Model, Node<Msg>>) -> Box<[JsValue]> {
+    let set_config = wrap_in_permanent_closure(enc!((app) move |unitedstr: String| {
+        let mut params = unitedstr.split_whitespace();
+        let typestr = params.next().unwrap().to_string();
+        let valuestr = params.next().unwrap().to_string();
+        if typestr == "speed" {
+            app.update(Msg::AnimationSpeedChanged(valuestr));
+        } else {
+            app.update(Msg::ScrambleStepChanged(valuestr));
+            app.update(Msg::ScramblePosition);
+        }
+    }));
+
+    vec![set_config].into_boxed_slice()
+}
+
+fn wrap_in_permanent_closure<T>(f: impl FnMut(T) + 'static) -> JsValue
+where
+    T: wasm_bindgen::convert::FromWasmAbi + 'static,
+{
+    // `Closure::new` isn't in `stable` Rust (yet) - it's a custom implementation from Seed.
+    // If you need more flexibility, use `Closure::wrap`.
+    let closure = Closure::new(f);
+    let closure_as_js_value = closure.as_ref().clone();
+    // `forget` leaks `Closure` - we should use it only when
+    // we want to call given `Closure` more than once.
+    closure.forget();
+    closure_as_js_value
 }

@@ -1,0 +1,10 @@
+FROM node:17.8
+
+WORKDIR /vue
+
+RUN apt update
+RUN apt install -y curl vim
+# RUN yarn global add @vue/cli
+
+# COPY vue/package.json .
+# COPY vue/package-lock.json .
