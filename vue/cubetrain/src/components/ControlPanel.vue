@@ -8,7 +8,7 @@
         <v-label class="input-label">速度</v-label>
       </v-col>
       <v-col md="1" class="item-center">
-        <input v-model="speed" placeholder="50" class="control-input" type="number">
+        <input v-model="speed" class="control-input" type="number">
         <!-- <v-text-field
           label="回転速度"
           hide-details="auto"
@@ -18,7 +18,7 @@
         ></v-text-field> -->
       </v-col>
       <v-col md="6">
-        <v-btn color="primary" block>
+        <v-btn color="primary" block @click="controlAction('speed')">
           回転速度変更
           <v-icon>mdi-shuffle</v-icon>
         </v-btn>
@@ -28,7 +28,7 @@
         <v-label class="input-label">手数</v-label>
       </v-col>
       <v-col md="1" class="item-center">
-        <input v-model="scramblestep" placeholder="25" class="control-input" type="number">
+        <input v-model="scramblestep" class="control-input" type="number">
         <!-- <v-text-field
           label="手数"
           hide-details="auto"
@@ -38,7 +38,7 @@
         ></v-text-field> -->
       </v-col>
       <v-col md="6">
-        <v-btn color="primary" block>
+        <v-btn color="primary" block @click="controlAction('scramble')">
           スクランブル
           <v-icon>mdi-shuffle</v-icon>
         </v-btn>
@@ -249,35 +249,40 @@
     </v-row>  </v-container>
 </template>
 <script lang="ts">
-import { defineComponent, toRefs, ref } from 'vue';
+import { defineComponent, toRefs, ref } from "vue";
 
 export default defineComponent({
   name: "ControlPanel",
-  setup(props: any){
+  setup(props: any, context: any){
     const { defspeed, defscramblestep } = toRefs(props)
     console.log(defspeed.value)
-    const speed = ref<String>(defspeed.value);
-    const scramblestep = ref<String>(defscramblestep.value);
+    const speed = ref<number>(defspeed.value);
+    const scramblestep = ref<number>(defscramblestep.value);
     // const speed = ref<String>("sss");
     // const scramblestep = ref<String>("wwwe");
-    const rules = [
-      (value: any) => !!value || 'Required.',
-      (value: String) => (value && value.length >= 3) || 'Min 3 characters',
-    ];
+    // const rules = [];
+
+    const controlAction = (type: string) => {
+      let cfgvalue = 0;
+      if (type == "speed") {
+        cfgvalue = speed.value;
+      } else {
+        cfgvalue = scramblestep.value;
+      }
+      context.emit("controlAction", type, cfgvalue);
+    };
     return {
       speed,
       scramblestep,
-      rules
+      // rules,
+      //
+      controlAction
     }
   },
   props: {
-    defspeed: {type: String, required: true},
-    defscramblestep: {type: String, required: true},
+    defspeed: {type: Number, required: true},
+    defscramblestep: {type: Number, required: true},
   },
-  data: () => ({
-    test1: "dddd",
-    test2: "yy22e"
-  })
 })
 </script>
 <style scoped>

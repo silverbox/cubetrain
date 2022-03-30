@@ -5,12 +5,16 @@
         <v-row>
           <v-col md="4">
             <ControlPanel
-              defspeed="50"
-              defscramblestep="25"
+              :defspeed=40
+              :defscramblestep=24
+              @controlAction="onControlAction"
             />
           </v-col>
           <v-col md="8">
-            <WasmScreen id="wasmelemid"/>
+            <WasmScreen
+              id="wasmelemid"
+              ref="wasm"
+            />
           </v-col>
         </v-row>
       </v-container>
@@ -19,21 +23,27 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { defineComponent, ref } from 'vue'
 import ControlPanel from './components/ControlPanel.vue'
 import WasmScreen from './components/WasmScreen.vue'
 
 export default defineComponent({
   name: 'App',
-
+  setup(){
+    const wasm = ref();
+    const onControlAction = (type: string, val: number) => {
+      if (wasm.value != null) {
+        wasm.value.setConfig(type, val);
+      }
+    };
+    return {
+      wasm,
+      onControlAction
+    };
+  },
   components: {
     ControlPanel,
     WasmScreen
-  },
-
-  data () {
-    return {
-    }
   },
 })
 </script>

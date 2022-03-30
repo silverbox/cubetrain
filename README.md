@@ -71,18 +71,24 @@ sudo docker-compose up
 sudo docker exec -it cubetrain-vuefront bash
 ```
 
-プロジェクト作成
+プロジェクト作成（vueコンテナ内）
 
 ```bash
 yarn global add @vue/cli
+# vue3を選択
 vue create cubetrain
+cd cubetrain
+# vue3用のvuetifyを使用
+vue add vuetify
+yarn add typescript
+yarn add webfontloader
 ```
 
 ## seedとの連携
 
 ### seedコンパイル
 
-```
+```bash
 cd wasm
 cargo make build_release
 cd ..
@@ -92,15 +98,27 @@ cd ..
 
 vue側のコンパイルに必要になるので、`package.js`、`package_bg.wasm`をvue側へコピー。wasmとjsのインターフェース部が変わった時は再処理する。
 
-```
+```bash
 cp wasm/pkg/package.js vue/cubetrain/src/wasm/package.js
 cp wasm/pkg/package_bg.wasm vue/cubetrain/src/wasm/package_bg.wasm
+# wasmフォルダにいる場合
+cp pkg/package.js ../vue/cubetrain/src/wasm/package.js
+cp pkg/package_bg.wasm ../vue/cubetrain/src/wasm/package_bg.wasm
 ```
 
 以下の行をコピー先の`package.js`の最初に追記
 
 ```
 /* eslint-disable */
+```
+
+### 開発時サービス起動
+
+前述コマンドで、vueコンテナへログインして以下コマンド
+
+```
+cd cubetrain
+yarn serve
 ```
 
 ### アクセス
