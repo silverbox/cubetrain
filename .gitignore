@@ -1,3 +1,6 @@
 /target
 
 /log
+
+/nginx/vuedist
+/nginx/wasm
