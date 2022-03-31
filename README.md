@@ -94,16 +94,23 @@ cargo make build_release
 cd ..
 ```
 
-### vue側へコピー
+### nginx、vue側へコピー
 
 vue側のコンパイルに必要になるので、`package.js`、`package_bg.wasm`をvue側へコピー。wasmとjsのインターフェース部が変わった時は再処理する。
+また、nginxの静的リソースフォルダへもコピーしておく。※直接出力フォルダをマウントすると再コンパイル時にnginx側から見えなくなる。
+インターフェース部の変更がない場合、wasmファイルだけ対象で大丈夫
 
 ```bash
+# ルートフォルダにいる場合
 cp wasm/pkg/package.js vue/cubetrain/src/wasm/package.js
+cp wasm/pkg/package.js nginx/wasm/package.js
 cp wasm/pkg/package_bg.wasm vue/cubetrain/src/wasm/package_bg.wasm
+cp wasm/pkg/package_bg.wasm nignx/wasm/package_bg.wasm
 # wasmフォルダにいる場合
 cp pkg/package.js ../vue/cubetrain/src/wasm/package.js
+cp pkg/package.js ../nginx/wasm/package.js
 cp pkg/package_bg.wasm ../vue/cubetrain/src/wasm/package_bg.wasm
+cp pkg/package_bg.wasm ../nginx/wasm/package_bg.wasm
 ```
 
 以下の行をコピー先の`package.js`の最初に追記

@@ -9,8 +9,10 @@ services:
     volumes:
       - ./log/nginx/:/var/log/nginx/
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./wasm/pkg:/wasm
-      - ./vue/cubetrain/dist:/vuedist
+      - ./nginx/wasm:/wasm
+      - ./nginx/vuedist:/vuedist
+      # - ./wasm/pkg:/wasm
+      # - ./vue/cubetrain/dist:/vuedist
     depends_on:
       - vuefront
     container_name: cubetrain-nginx
