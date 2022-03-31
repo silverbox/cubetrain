@@ -46,7 +46,7 @@
     </v-row>
     <v-row>
       <v-col md="6" offset-md="4">
-        <v-btn color="primary" block>
+        <v-btn color="primary" block @click="controlAction('reset')">
           リセット
           <v-icon>mdi-autorenew</v-icon>
         </v-btn>
@@ -78,17 +78,17 @@
         </v-label>
       </v-col>
       <v-col md="3">
-        <v-btn block>
+        <v-btn block @click="rotateAction('x', 'all', 'n')">
           x
         </v-btn>
       </v-col>
       <v-col md="3">
-        <v-btn block>
+        <v-btn block @click="rotateAction('y', 'all', 'n')">
           y
         </v-btn>
       </v-col>
       <v-col md="3">
-        <v-btn block>
+        <v-btn block @click="rotateAction('z', 'all', 'n')">
           z
         </v-btn>
       </v-col>
@@ -100,17 +100,17 @@
         </v-label>
       </v-col>
       <v-col md="3">
-        <v-btn block>
+        <v-btn block @click="rotateAction('x', 'all', 'p')">
           x'
         </v-btn>
       </v-col>
       <v-col md="3">
-        <v-btn block>
+        <v-btn block @click="rotateAction('y', 'all', 'p')">
           y'
         </v-btn>
       </v-col>
       <v-col md="3">
-        <v-btn block>
+        <v-btn block @click="rotateAction('z', 'all', 'p')">
           z'
         </v-btn>
       </v-col>
@@ -122,17 +122,17 @@
         </v-label>
       </v-col>
       <v-col md="3">
-        <v-btn block>
+        <v-btn block @click="rotateAction('x', 'pos', 'n')">
           R
         </v-btn>
       </v-col>
       <v-col md="3">
-        <v-btn block>
+        <v-btn block @click="rotateAction('y', 'pos', 'n')">
           U
         </v-btn>
       </v-col>
       <v-col md="3">
-        <v-btn block>
+        <v-btn block @click="rotateAction('z', 'pos', 'n')">
           F
         </v-btn>
       </v-col>
@@ -144,17 +144,17 @@
         </v-label>
       </v-col>
       <v-col md="3">
-        <v-btn block>
+        <v-btn block @click="rotateAction('x', 'pos', 'p')">
           R'
         </v-btn>
       </v-col>
       <v-col md="3">
-        <v-btn block>
+        <v-btn block @click="rotateAction('y', 'pos', 'p')">
           U'
         </v-btn>
       </v-col>
       <v-col md="3">
-        <v-btn block>
+        <v-btn block @click="rotateAction('z', 'pos', 'p')">
           F'
         </v-btn>
       </v-col>
@@ -166,17 +166,17 @@
         </v-label>
       </v-col>
       <v-col md="3">
-        <v-btn block>
+        <v-btn block @click="rotateAction('x', 'neu', 'n')">
           M
         </v-btn>
       </v-col>
       <v-col md="3">
-        <v-btn block>
+        <v-btn block @click="rotateAction('y', 'neu', 'p')">
           E
         </v-btn>
       </v-col>
       <v-col md="3">
-        <v-btn block>
+        <v-btn block @click="rotateAction('z', 'neu', 'n')">
           S
         </v-btn>
       </v-col>
@@ -188,17 +188,17 @@
         </v-label>
       </v-col>
       <v-col md="3">
-        <v-btn block>
+        <v-btn block @click="rotateAction('x', 'neu', 'p')">
           M'
         </v-btn>
       </v-col>
       <v-col md="3">
-        <v-btn block>
+        <v-btn block @click="rotateAction('y', 'neu', 'n')">
           E'
         </v-btn>
       </v-col>
       <v-col md="3">
-        <v-btn block>
+        <v-btn block @click="rotateAction('z', 'neu', 'p')">
           S'
         </v-btn>
       </v-col>
@@ -210,17 +210,17 @@
         </v-label>
       </v-col>
       <v-col md="3">
-        <v-btn block>
+        <v-btn block @click="rotateAction('x', 'neg', 'p')">
           L
         </v-btn>
       </v-col>
       <v-col md="3">
-        <v-btn block>
+        <v-btn block @click="rotateAction('y', 'neg', 'p')">
           D
         </v-btn>
       </v-col>
       <v-col md="3">
-        <v-btn block>
+        <v-btn block @click="rotateAction('z', 'neg', 'p')">
           B
         </v-btn>
       </v-col>
@@ -232,17 +232,17 @@
         </v-label>
       </v-col>
       <v-col md="3">
-        <v-btn block>
+        <v-btn block @click="rotateAction('x', 'neg', 'n')">
           L'
         </v-btn>
       </v-col>
       <v-col md="3">
-        <v-btn block>
+        <v-btn block @click="rotateAction('y', 'neg', 'n')">
           D'
         </v-btn>
       </v-col>
       <v-col md="3">
-        <v-btn block>
+        <v-btn block @click="rotateAction('z', 'neg', 'n')">
           B'
         </v-btn>
       </v-col>
@@ -258,25 +258,28 @@ export default defineComponent({
     console.log(defspeed.value)
     const speed = ref<number>(defspeed.value);
     const scramblestep = ref<number>(defscramblestep.value);
-    // const speed = ref<String>("sss");
-    // const scramblestep = ref<String>("wwwe");
-    // const rules = [];
 
     const controlAction = (type: string) => {
       let cfgvalue = 0;
       if (type == "speed") {
         cfgvalue = speed.value;
-      } else {
+      } else if (type == "scramble") {
         cfgvalue = scramblestep.value;
+      } else {
+        cfgvalue = 0;
       }
       context.emit("controlAction", type, cfgvalue);
+    };
+    const rotateAction = (axis: string, layer: string, dir: string) => {
+      context.emit("rotateAction", axis, layer, dir);
     };
     return {
       speed,
       scramblestep,
       // rules,
       //
-      controlAction
+      controlAction,
+      rotateAction
     }
   },
   props: {

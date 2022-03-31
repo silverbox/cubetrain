@@ -11,28 +11,30 @@ export default defineComponent({
   setup(props){
     const { id } = toRefs(props)
     const interfaceSetConfig = ref<any>(() => {});
+    const interfaceRotate = ref<any>(() => {});
     const setConfig = (type: string, val: number) => {
-      console.log(type)
-      console.log(val)
-      const unitedstr = type + " " + String(val)
+      const unitedstr = `${type} ${val}`;
       interfaceSetConfig.value(unitedstr);
+    };
+    const rotate = (axis: string, layer: string, dir: string) => {
+      const unitedstr = `${axis} ${layer} ${dir}`;
+      interfaceRotate.value(unitedstr);
     };
     const onMountedOperation = () => {
       init('/wasm/package_bg.wasm').then(() => {
-        const [set_config] = start(id.value);
-        interfaceSetConfig.value = set_config
+        const [set_config, rotate] = start(id.value);
+        interfaceSetConfig.value = set_config;
+        interfaceRotate.value = rotate;
       });
     }
     onMounted(onMountedOperation);
     return {
-      setConfig
+      setConfig,
+      rotate
     }
   },
   props: {
     id: {type: String, required: true}
   },
-  // mounted () {
-  //   this.id = this._uid
-  // }
 })
 </script>

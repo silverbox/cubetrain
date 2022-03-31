@@ -8,6 +8,7 @@
               :defspeed=40
               :defscramblestep=24
               @controlAction="onControlAction"
+              @rotateAction="onRotateAction"
             />
           </v-col>
           <v-col md="8">
@@ -36,9 +37,15 @@ export default defineComponent({
         wasm.value.setConfig(type, val);
       }
     };
+    const onRotateAction = (axis: string, layer: string, dir: string) => {
+      if (wasm.value != null) {
+        wasm.value.rotate(axis, layer, dir);
+      }
+    };
     return {
       wasm,
-      onControlAction
+      onControlAction,
+      onRotateAction
     };
   },
   components: {
