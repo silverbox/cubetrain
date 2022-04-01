@@ -9,18 +9,11 @@
       </v-col>
       <v-col md="1" class="item-center">
         <input v-model="speed" class="control-input" type="number">
-        <!-- <v-text-field
-          label="回転速度"
-          hide-details="auto"
-          density="compact"
-          :value="speed"
-          :rules="rules"
-        ></v-text-field> -->
       </v-col>
       <v-col md="6">
-        <v-btn color="primary" block @click="controlAction('speed')">
+        <v-btn color="normal" block @click="controlAction('speed')">
           回転速度変更
-          <v-icon>mdi-shuffle</v-icon>
+          <v-icon>mdi-refresh</v-icon>
         </v-btn>
       </v-col>    </v-row>
     <v-row>
@@ -29,16 +22,9 @@
       </v-col>
       <v-col md="1" class="item-center">
         <input v-model="scramblestep" class="control-input" type="number">
-        <!-- <v-text-field
-          label="手数"
-          hide-details="auto"
-          density="compact"
-          :value="scramblestep"
-          :rules="rules"
-        ></v-text-field> -->
       </v-col>
       <v-col md="6">
-        <v-btn color="primary" block @click="controlAction('scramble')">
+        <v-btn color="normal" block @click="controlAction('scramble')">
           スクランブル
           <v-icon>mdi-shuffle</v-icon>
         </v-btn>
@@ -46,9 +32,18 @@
     </v-row>
     <v-row>
       <v-col md="6" offset-md="4">
-        <v-btn color="primary" block @click="controlAction('reset')">
+        <v-btn color="normal" block @click="controlAction('reset')">
           リセット
           <v-icon>mdi-autorenew</v-icon>
+        </v-btn>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col md="6" offset-md="4">
+        <v-btn :color="keyOperationColor" block @keypress="onKeyOperation" @focus="keyOperation = true" @blur="keyOperation = false">
+          キーボード操作
+          <v-icon v-if="keyOperation">mdi-play</v-icon>
+          <v-icon v-else>mdi-pause</v-icon>
         </v-btn>
       </v-col>
     </v-row>
@@ -249,16 +244,17 @@
     </v-row>  </v-container>
 </template>
 <script lang="ts">
-import { defineComponent, toRefs, ref } from "vue";
+import { defineComponent, toRefs, ref, computed } from "vue";
 
 export default defineComponent({
   name: "ControlPanel",
   setup(props: any, context: any){
     const { defspeed, defscramblestep } = toRefs(props)
-    console.log(defspeed.value)
     const speed = ref<number>(defspeed.value);
+    const keyOperation = ref<boolean>(false);
     const scramblestep = ref<number>(defscramblestep.value);
 
+    //
     const controlAction = (type: string) => {
       let cfgvalue = 0;
       if (type == "speed") {
@@ -273,13 +269,46 @@ export default defineComponent({
     const rotateAction = (axis: string, layer: string, dir: string) => {
       context.emit("rotateAction", axis, layer, dir);
     };
+    const onKeyOperation = (e: KeyboardEvent) => {
+      console.log(e.key.toLowerCase());
+      console.log(_getdir(e.key, e.shiftKey));
+      if (e.key.toLowerCase() == 'x') rotateAction("x", "all", _getdir(e.key, e.shiftKey)); else
+      if (e.key.toLowerCase() == 'y') rotateAction("y", "all", _getdir(e.key, e.shiftKey)); else
+      if (e.key.toLowerCase() == 'z') rotateAction("z", "all", _getdir(e.key, e.shiftKey)); else
+      if (e.key.toLowerCase() == 'r') rotateAction("x", "pos", _getdir(e.key, e.shiftKey)); else
+      if (e.key.toLowerCase() == 'u') rotateAction("y", "pos", _getdir(e.key, e.shiftKey)); else
+      if (e.key.toLowerCase() == 'f') rotateAction("z", "pos", _getdir(e.key, e.shiftKey)); else
+      if (e.key.toLowerCase() == 'm') rotateAction("x", "neu", _getdir(e.key, e.shiftKey)); else
+      if (e.key.toLowerCase() == 'e') rotateAction("y", "neu", _getdir(e.key, e.shiftKey)); else
+      if (e.key.toLowerCase() == 's') rotateAction("z", "neu", _getdir(e.key, e.shiftKey)); else
+      if (e.key.toLowerCase() == 'l') rotateAction("x", "neg", _getdir(e.key, e.shiftKey)); else
+      if (e.key.toLowerCase() == 'd') rotateAction("y", "neg", _getdir(e.key, e.shiftKey)); else
+      if (e.key.toLowerCase() == 'b') rotateAction("z", "neg", _getdir(e.key, e.shiftKey));
+    };
+    const _getdir = (key: string, shift: boolean): string => {
+      const uk = key.toLowerCase();
+      const alt = (['e', 'l', 'd', 'b'].includes(uk));
+      if (shift) {
+        return alt ? "n" : "p"; 
+      } else {
+        return alt ? "p" : "n";
+      }
+    };
+    //
+    const keyOperationColor = computed((): string => {
+      if (keyOperation.value) return "primary"; else return "normal";
+    });
     return {
       speed,
       scramblestep,
+      keyOperation,
       // rules,
       //
       controlAction,
-      rotateAction
+      rotateAction,
+      onKeyOperation,
+      //
+      keyOperationColor
     }
   },
   props: {

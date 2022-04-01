@@ -149,7 +149,7 @@ fn view(model: &Model) -> Node<Msg> {
     div![
         C!["counter"],
         style! {St::Display => "flex"},
-        input![
+        input![ // workaround for bug?
             style! {St::Width => px(0)},
             input_ev(Ev::Input, Msg::AnimationSpeedChanged),
         ],
@@ -236,7 +236,8 @@ fn get_rotate_target(axisstr: String, layerstr: String, dirstr: String) -> Rotat
         "neg" => RotateLayer::Negative,
         _ => RotateLayer::All
     };
-    let radval = match &*dirstr {
+    let dirstr_r = dirstr.as_str();
+    let radval = match dirstr_r {
         "n" => -PI / 2.0,
         _ => PI / 2.0
     };
