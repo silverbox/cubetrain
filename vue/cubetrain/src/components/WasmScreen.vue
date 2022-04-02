@@ -3,8 +3,7 @@
 </template>
 <script lang="ts">
 import { defineComponent, toRefs, onMounted, ref } from 'vue';
-import init from '@/wasm/package.js';
-import { start } from '@/wasm/package.js';
+import init, { start } from '@/wasm/package.js';
 
 export default defineComponent({
   name: "WasmScreen",
