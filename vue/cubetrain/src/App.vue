@@ -21,39 +21,48 @@
         <v-icon>mdi-magnify</v-icon>
       </v-btn>
 
-      <v-menu
-        left
-        bottom
+      <v-btn
+        icon
+        @click="(showHistory = !showHistory)"
       >
-        <template v-slot:activator="{ on, attrs }">
-          <v-btn
-            icon
-            v-bind="attrs"
-            v-on="on"
-          >
-            <v-icon>mdi-dots-vertical</v-icon>
-          </v-btn>
-        </template>
-
-        <v-list>
-          <v-list-item
-            v-for="n in 5"
-            :key="n"
-            @click="() => {}"
-          >
-            <v-list-item-title>Option {{ n }}</v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-menu>
+        <v-icon>mdi-dots-vertical</v-icon>
+        <!-- <v-menu
+          left
+          bottom
+          activator="parent"
+          anchor="start"
+        >
+          <v-list>
+            <v-list-item
+              v-for="n in 5"
+              :key="n"
+              @click="() => {}"
+            >
+              <v-list-item-title>Option {{ n }}</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu> -->
+      </v-btn>
     </v-app-bar>
 
     <v-navigation-drawer permanent>
       <!-- -->
     </v-navigation-drawer>
-    <v-navigation-drawer color="grey-darken-2" permanent position="right">
 
+    <v-navigation-drawer permanent position="right" v-if="showHistory">
+      <v-list density="compact">
+        <v-list-subheader>操作履歴</v-list-subheader>
+        <v-list-item
+          v-for="(item, i) in rotateHistory"
+          :key="i"
+          :value="item"
+          active-color="primary"
+        >
+          <v-list-item-title v-text="item"></v-list-item-title>
+        </v-list-item>
+      </v-list>
     </v-navigation-drawer>
-    <!-- Sizes your content based upon application components -->
+
     <v-main>
       <!-- Provides the application the proper gutter -->
         <v-container class="grey lighten-5" fluid>
@@ -87,6 +96,10 @@ export default defineComponent({
   name: 'App',
   setup(){
     const wasm = ref();
+    //
+    const showHistory = ref<boolean>(true);
+    const rotateHistory = ref<Array<string>>([]);
+    //
     const onControlAction = (type: string, val: number) => {
       if (wasm.value != null) {
         wasm.value.setConfig(type, val);
@@ -95,10 +108,13 @@ export default defineComponent({
     const onRotateAction = (axis: string, layer: string, dir: string) => {
       if (wasm.value != null) {
         wasm.value.rotate(axis, layer, dir);
+        rotateHistory.value.push(layer);
       }
     };
     return {
       wasm,
+      showHistory,
+      rotateHistory,
       onControlAction,
       onRotateAction
     };
