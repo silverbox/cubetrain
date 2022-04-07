@@ -53,12 +53,12 @@
       <v-list density="compact">
         <v-list-subheader>操作履歴</v-list-subheader>
         <v-list-item
-          v-for="(item, i) in rotateHistory"
+          v-for="(step, i) in rotateStepList"
           :key="i"
-          :value="item"
+          :value="step"
           active-color="primary"
         >
-          <v-list-item-title v-text="item"></v-list-item-title>
+          <v-list-item-title v-text="step.layer"></v-list-item-title>
         </v-list-item>
       </v-list>
     </v-navigation-drawer>
@@ -91,14 +91,16 @@
 import { defineComponent, ref } from 'vue'
 import ControlPanel from './components/ControlPanel.vue'
 import WasmScreen from './components/WasmScreen.vue'
+import { RotateStep, RotateStepManager } from '@/class/rotateStepManager'
 
 export default defineComponent({
   name: 'App',
   setup(){
     const wasm = ref();
-    //
+    const stepManager: RotateStepManager = new RotateStepManager();
     const showHistory = ref<boolean>(true);
-    const rotateHistory = ref<Array<string>>([]);
+    //
+    const rotateStepList = ref<Array<RotateStep>>([]);
     //
     const onControlAction = (type: string, val: number) => {
       if (wasm.value != null) {
@@ -108,13 +110,13 @@ export default defineComponent({
     const onRotateAction = (axis: string, layer: string, dir: string) => {
       if (wasm.value != null) {
         wasm.value.rotate(axis, layer, dir);
-        rotateHistory.value.push(layer);
+        rotateStepList.value.push(stepManager.addStep(axis, layer, dir));
       }
     };
     return {
       wasm,
       showHistory,
-      rotateHistory,
+      rotateStepList,
       onControlAction,
       onRotateAction
     };
