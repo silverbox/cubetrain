@@ -1,5 +1,3 @@
-import { markRaw } from "vue";
-
 export type Axis = "x" | "y" | "z";
 export type Layer = "all" | "pos" | "neu" | "neg";
 export type Dir = "p" | "n";
@@ -74,6 +72,37 @@ export const cubeutils = () => {
     return undefined;
   }
 
+  const _getRandomInt = (max: number) => {
+    return Math.floor(Math.random() * max);
+  }
+  const _getRandAxis = (): Axis => {
+    const rndAxis = _getRandomInt(3);
+    switch (rndAxis) {
+      case 1: return "x";
+      case 2: return "y";
+      default: return "z";
+    }
+  }
+  const _getRandLayer = (): Layer => {
+    const rndAxis = _getRandomInt(4);
+    switch (rndAxis) {
+      case 0: return "all";
+      case 1: return "pos";
+      case 2: return "neu";
+      default: return "neg";
+    }
+  }
+  const _getRandDir = (): Dir => {
+    const rndAxis = _getRandomInt(4);
+    switch (rndAxis) {
+      case 0: return "p";
+      default: return "n";
+    }
+  }
+  const getRandomRotateInfo = (): RotateInfo => {
+    return { axis: _getRandAxis(), layer: _getRandLayer(), dir: _getRandDir() };
+  }
+
   const getRotateInfo = (symbol: Symbol, alt: boolean): RotateInfo => {
     switch (symbol) {
       case "x": return { axis: "x", layer: "all", dir: _getDirSub(symbol, alt) };
@@ -91,6 +120,15 @@ export const cubeutils = () => {
     }
   };
 
+  const getRotateInfoFromStr = (symbolMark: string): RotateInfo | undefined => {
+    const symbol = getSymbolFromKey(symbolMark.substring(0, 1));
+    if (symbol == undefined) {
+      return undefined;
+    }
+    const alt = symbolMark.length > 1;
+    return getRotateInfo(symbol, alt);
+  };
+
   const _getDirSub = (symbol: Symbol, alt: boolean): Dir => {
     const isAltKey = (["E", "L", "D", "B"].includes(symbol));
     if (alt) {
@@ -101,8 +139,10 @@ export const cubeutils = () => {
   };
 
   return  {
+    getRandomRotateInfo,
     getRotateSymbol,
     getRotateInfo,
+    getRotateInfoFromStr,
     getSymbolFromKey
   }
 }

@@ -97,14 +97,15 @@
       v-model="fileImportDialog"
     >
       <v-card>
-        <v-card-text>ー　　　　　操作履歴ファイル取込み　　　　　ー</v-card-text> <!-- TODO workaround for width -->
+        <v-card-text>[　　　　　操作履歴ファイル取込み　　　　　]</v-card-text> <!-- TODO workaround for width -->
         <v-file-input
           accept="text/*"
           ref="fileDialogInput"
         ></v-file-input>
         <v-card-actions>
-          <v-btn color="primary" block @click="onImportExecute">取込</v-btn>
-          <v-btn color="primary" block @click="fileDialog = false">Close</v-btn>
+          <v-spacer></v-spacer>
+          <v-btn @click="onImportExecute">取込</v-btn>
+          <v-btn color="primary" @click="fileImportDialog = false">Close</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -115,15 +116,18 @@
 import { defineComponent, ref } from 'vue'
 import ControlPanel from './components/ControlPanel.vue'
 import WasmScreen from './components/WasmScreen.vue'
-import { RotateStep, RotateStepManager } from '@/class/rotateStepManager'
-import { Axis, Layer, Dir } from '@/class/cubeutils';
+import { RotateStep, RotateStepManager,  } from '@/class/rotateStepManager'
+import { Axis, Layer, Dir, cubeutils } from '@/class/cubeutils';
+const { getRotateInfoFromStr, getRandomRotateInfo } = cubeutils();
 
 type fileModeType = "import" | "export" | "";
 
 export default defineComponent({
   name: 'App',
   setup(){
+    const waitMSec = 300; // TODO
     const stepManager: RotateStepManager = new RotateStepManager();
+    const wait = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
     //
     const wasm = ref();
     const fileDialogInput = ref();
@@ -137,19 +141,34 @@ export default defineComponent({
     const showHistory = ref<boolean>(false);
     const rotateStepList = ref<Array<RotateStep>>([]);
     //
-    const onControlAction = (type: string, val: number) => {
+    const onControlAction = async (type: string, val: number) => {
       if (wasm.value != null) {
         wasm.value.setConfig(type, val);
       }
-      if (type == "reset") {
-        rotateStepList.value = [];
-        stepManager.clearStepList();
+      switch (type) {
+        case "reset":
+          onClearStep();
+          break;
+        case "scramble":
+          onClearStep();
+          for (var i = 0;i < val; i++) {
+            const { axis, layer, dir } = getRandomRotateInfo();
+            onRotateAction(axis, layer, dir);
+            await wait(waitMSec);
+          }
+          break;
       }
+    };
+    const onClearStep = () => {
+      wasm.value.setConfig("reset", 0);
+      rotateStepList.value = [];
+      stepManager.clearStepList();
     };
     const onRotateAction = (axis: Axis, layer: Layer, dir: Dir) => {
       if (wasm.value != null) {
         wasm.value.rotate(axis, layer, dir);
-        rotateStepList.value.push(stepManager.addStep(axis, layer, dir));
+        const step = stepManager.addStep(axis, layer, dir);
+        rotateStepList.value.push(step);
       }
     };
     const onMenuClick = (menuid: fileModeType) => {
@@ -164,13 +183,21 @@ export default defineComponent({
       historyMenuButton.value.$el.click(); // TODO workaround for close-on-click
     };
     const onImportExecute = () => {
-      const inputElem = fileDialogInput.value.$el.getElementsByTagName('input')[0]; // TODO workaround
+      fileImportDialog.value = false;
+      const inputElem = fileDialogInput.value.$el.getElementsByTagName('input')[0]; // TODO workaround for file-input value
       const files = inputElem.files;
       const reader = new FileReader();
       reader.readAsText(files[0]);
-      reader.onload = () => {
-        console.log(reader.result);
-        fileImportDialog.value = false;
+      reader.onload = async () => {
+        onClearStep();
+        const stepList = reader.result.toString().split("\n");
+        for (const step of stepList) {
+          const rotateInfo = getRotateInfoFromStr(step);
+          if (rotateInfo == undefined) continue;
+          const { axis, layer, dir } = rotateInfo;
+          onRotateAction(axis, layer, dir);
+          await wait(waitMSec);
+        }
       };
     };
     const onExportExecute = () => {
