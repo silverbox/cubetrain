@@ -1,3 +1,5 @@
+import { markRaw } from "vue";
+
 export type Axis = "x" | "y" | "z";
 export type Layer = "all" | "pos" | "neu" | "neg";
 export type Dir = "p" | "n";
@@ -11,8 +13,8 @@ export interface RotateInfo {
 }
 
 export interface SymbolMark {
-  symbol: Symbol,
-  mark: RevMark
+  symbol: Symbol;
+  mark: RevMark;
 }
 
 export const cubeutils = () => {

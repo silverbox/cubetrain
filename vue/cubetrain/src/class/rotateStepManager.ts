@@ -34,9 +34,22 @@ export class RotateStepManager {
     }
     this.currentStepList.push(step);
     return step;
-  }
+  };
+
+  getStepListStr = (): string => {
+    let retStr = "";
+    for (const step of this.currentStepList) {
+      retStr += (this.getStepStr(step) + "\n");
+    }
+    return retStr;
+  };
 
   getCurrentStepList = (): Array<RotateStep> => {
     return this.currentStepList;
-  }
+  };
+
+  getStepStr = (step: RotateStep): string => {
+    return step.symbolMark.symbol + step.symbolMark.mark;
+  };
+
 }
