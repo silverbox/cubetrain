@@ -58,7 +58,7 @@
           :value="step"
           active-color="primary"
         >
-          <v-list-item-title v-text="step.layer"></v-list-item-title>
+          <v-list-item-title v-text="step.symbol"></v-list-item-title>
         </v-list-item>
       </v-list>
     </v-navigation-drawer>
