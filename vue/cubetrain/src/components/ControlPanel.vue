@@ -15,7 +15,8 @@
           回転速度変更
           <v-icon>mdi-refresh</v-icon>
         </v-btn>
-      </v-col>    </v-row>
+      </v-col>
+    </v-row>
     <v-row>
       <v-col md="1" offset-md="2" class="item-center">
         <v-label class="input-label">手数</v-label>
@@ -73,17 +74,17 @@
         </v-label>
       </v-col>
       <v-col md="3">
-        <v-btn block @click="rotateAction('x', 'all', 'n')">
+        <v-btn block @click="onButtonOperation('x', 'all', 'n')">
           x
         </v-btn>
       </v-col>
       <v-col md="3">
-        <v-btn block @click="rotateAction('y', 'all', 'n')">
+        <v-btn block @click="onButtonOperation('y', 'all', 'n')">
           y
         </v-btn>
       </v-col>
       <v-col md="3">
-        <v-btn block @click="rotateAction('z', 'all', 'n')">
+        <v-btn block @click="onButtonOperation('z', 'all', 'n')">
           z
         </v-btn>
       </v-col>
@@ -95,17 +96,17 @@
         </v-label>
       </v-col>
       <v-col md="3">
-        <v-btn block @click="rotateAction('x', 'all', 'p')">
+        <v-btn block @click="onButtonOperation('x', 'all', 'p')">
           x'
         </v-btn>
       </v-col>
       <v-col md="3">
-        <v-btn block @click="rotateAction('y', 'all', 'p')">
+        <v-btn block @click="onButtonOperation('y', 'all', 'p')">
           y'
         </v-btn>
       </v-col>
       <v-col md="3">
-        <v-btn block @click="rotateAction('z', 'all', 'p')">
+        <v-btn block @click="onButtonOperation('z', 'all', 'p')">
           z'
         </v-btn>
       </v-col>
@@ -117,17 +118,17 @@
         </v-label>
       </v-col>
       <v-col md="3">
-        <v-btn block @click="rotateAction('x', 'pos', 'n')">
+        <v-btn block @click="onButtonOperation('x', 'pos', 'n')">
           R
         </v-btn>
       </v-col>
       <v-col md="3">
-        <v-btn block @click="rotateAction('y', 'pos', 'n')">
+        <v-btn block @click="onButtonOperation('y', 'pos', 'n')">
           U
         </v-btn>
       </v-col>
       <v-col md="3">
-        <v-btn block @click="rotateAction('z', 'pos', 'n')">
+        <v-btn block @click="onButtonOperation('z', 'pos', 'n')">
           F
         </v-btn>
       </v-col>
@@ -139,17 +140,17 @@
         </v-label>
       </v-col>
       <v-col md="3">
-        <v-btn block @click="rotateAction('x', 'pos', 'p')">
+        <v-btn block @click="onButtonOperation('x', 'pos', 'p')">
           R'
         </v-btn>
       </v-col>
       <v-col md="3">
-        <v-btn block @click="rotateAction('y', 'pos', 'p')">
+        <v-btn block @click="onButtonOperation('y', 'pos', 'p')">
           U'
         </v-btn>
       </v-col>
       <v-col md="3">
-        <v-btn block @click="rotateAction('z', 'pos', 'p')">
+        <v-btn block @click="onButtonOperation('z', 'pos', 'p')">
           F'
         </v-btn>
       </v-col>
@@ -161,17 +162,17 @@
         </v-label>
       </v-col>
       <v-col md="3">
-        <v-btn block @click="rotateAction('x', 'neu', 'n')">
+        <v-btn block @click="onButtonOperation('x', 'neu', 'n')">
           M
         </v-btn>
       </v-col>
       <v-col md="3">
-        <v-btn block @click="rotateAction('y', 'neu', 'p')">
+        <v-btn block @click="onButtonOperation('y', 'neu', 'p')">
           E
         </v-btn>
       </v-col>
       <v-col md="3">
-        <v-btn block @click="rotateAction('z', 'neu', 'n')">
+        <v-btn block @click="onButtonOperation('z', 'neu', 'n')">
           S
         </v-btn>
       </v-col>
@@ -183,17 +184,17 @@
         </v-label>
       </v-col>
       <v-col md="3">
-        <v-btn block @click="rotateAction('x', 'neu', 'p')">
+        <v-btn block @click="onButtonOperation('x', 'neu', 'p')">
           M'
         </v-btn>
       </v-col>
       <v-col md="3">
-        <v-btn block @click="rotateAction('y', 'neu', 'n')">
+        <v-btn block @click="onButtonOperation('y', 'neu', 'n')">
           E'
         </v-btn>
       </v-col>
       <v-col md="3">
-        <v-btn block @click="rotateAction('z', 'neu', 'p')">
+        <v-btn block @click="onButtonOperation('z', 'neu', 'p')">
           S'
         </v-btn>
       </v-col>
@@ -205,17 +206,17 @@
         </v-label>
       </v-col>
       <v-col md="3">
-        <v-btn block @click="rotateAction('x', 'neg', 'p')">
+        <v-btn block @click="onButtonOperation('x', 'neg', 'p')">
           L
         </v-btn>
       </v-col>
       <v-col md="3">
-        <v-btn block @click="rotateAction('y', 'neg', 'p')">
+        <v-btn block @click="onButtonOperation('y', 'neg', 'p')">
           D
         </v-btn>
       </v-col>
       <v-col md="3">
-        <v-btn block @click="rotateAction('z', 'neg', 'p')">
+        <v-btn block @click="onButtonOperation('z', 'neg', 'p')">
           B
         </v-btn>
       </v-col>
@@ -227,17 +228,17 @@
         </v-label>
       </v-col>
       <v-col md="3">
-        <v-btn block @click="rotateAction('x', 'neg', 'n')">
+        <v-btn block @click="onButtonOperation('x', 'neg', 'n')">
           L'
         </v-btn>
       </v-col>
       <v-col md="3">
-        <v-btn block @click="rotateAction('y', 'neg', 'n')">
+        <v-btn block @click="onButtonOperation('y', 'neg', 'n')">
           D'
         </v-btn>
       </v-col>
       <v-col md="3">
-        <v-btn block @click="rotateAction('z', 'neg', 'n')">
+        <v-btn block @click="onButtonOperation('z', 'neg', 'n')">
           B'
         </v-btn>
       </v-col>
@@ -245,6 +246,8 @@
 </template>
 <script lang="ts">
 import { defineComponent, toRefs, ref, computed } from "vue";
+import { RotateInfo, Axis, Layer, Dir, cubeutils } from '@/class/cubeutils';
+const { getRotateInfo, getSymbolFromKey } = cubeutils();
 
 export default defineComponent({
   name: "ControlPanel",
@@ -266,34 +269,20 @@ export default defineComponent({
       }
       context.emit("controlAction", type, cfgvalue);
     };
-    const rotateAction = (axis: string, layer: string, dir: string) => {
+    const rotateAction = (rotateInfo: RotateInfo) => {
+      const { axis, layer, dir } = rotateInfo;
       context.emit("rotateAction", axis, layer, dir);
     };
-    const onKeyOperation = (e: KeyboardEvent) => {
-      console.log(e.key.toLowerCase());
-      console.log(_getdir(e.key, e.shiftKey));
-      if (e.key.toLowerCase() == "x") rotateAction("x", "all", _getdir(e.key, e.shiftKey)); else
-      if (e.key.toLowerCase() == "y") rotateAction("y", "all", _getdir(e.key, e.shiftKey)); else
-      if (e.key.toLowerCase() == "z") rotateAction("z", "all", _getdir(e.key, e.shiftKey)); else
-      if (e.key.toLowerCase() == "r") rotateAction("x", "pos", _getdir(e.key, e.shiftKey)); else
-      if (e.key.toLowerCase() == "u") rotateAction("y", "pos", _getdir(e.key, e.shiftKey)); else
-      if (e.key.toLowerCase() == "f") rotateAction("z", "pos", _getdir(e.key, e.shiftKey)); else
-      if (e.key.toLowerCase() == "m") rotateAction("x", "neu", _getdir(e.key, e.shiftKey)); else
-      if (e.key.toLowerCase() == "e") rotateAction("y", "neu", _getdir(e.key, e.shiftKey)); else
-      if (e.key.toLowerCase() == "s") rotateAction("z", "neu", _getdir(e.key, e.shiftKey)); else
-      if (e.key.toLowerCase() == "l") rotateAction("x", "neg", _getdir(e.key, e.shiftKey)); else
-      if (e.key.toLowerCase() == "d") rotateAction("y", "neg", _getdir(e.key, e.shiftKey)); else
-      if (e.key.toLowerCase() == "b") rotateAction("z", "neg", _getdir(e.key, e.shiftKey));
+    const onButtonOperation = (axis: Axis, layer: Layer, dir: Dir) => {
+      rotateAction({ axis: axis, layer: layer, dir: dir });
     };
-    const _getdir = (key: string, shift: boolean): string => {
-      const uk = key.toLowerCase();
-      const alt = (["e", "l", "d", "b"].includes(uk));
-      if (shift) {
-        return alt ? "n" : "p"; 
-      } else {
-        return alt ? "p" : "n";
+    const onKeyOperation = (e: KeyboardEvent) => {
+      const wkSymbol = getSymbolFromKey(e.key);
+      if (wkSymbol != undefined){
+        rotateAction(getRotateInfo(wkSymbol, e.shiftKey));
       }
     };
+
     //
     const keyOperationColor = computed((): string => {
       if (keyOperation.value) return "primary"; else return "normal";
@@ -302,11 +291,11 @@ export default defineComponent({
       speed,
       scramblestep,
       keyOperation,
-      // rules,
       //
       controlAction,
       rotateAction,
       onKeyOperation,
+      onButtonOperation,
       //
       keyOperationColor
     }

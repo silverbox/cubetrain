@@ -58,7 +58,7 @@
           :value="step"
           active-color="primary"
         >
-          <v-list-item-title v-text="step.symbol"></v-list-item-title>
+          <v-list-item-title v-text="getStepStr(step)"></v-list-item-title>
         </v-list-item>
       </v-list>
     </v-navigation-drawer>
@@ -92,14 +92,15 @@ import { defineComponent, ref } from 'vue'
 import ControlPanel from './components/ControlPanel.vue'
 import WasmScreen from './components/WasmScreen.vue'
 import { RotateStep, RotateStepManager } from '@/class/rotateStepManager'
+import { Axis, Layer, Dir } from '@/class/cubeutils';
 
 export default defineComponent({
   name: 'App',
   setup(){
     const wasm = ref();
+    //
     const stepManager: RotateStepManager = new RotateStepManager();
     const showHistory = ref<boolean>(true);
-    //
     const rotateStepList = ref<Array<RotateStep>>([]);
     //
     const onControlAction = (type: string, val: number) => {
@@ -107,18 +108,26 @@ export default defineComponent({
         wasm.value.setConfig(type, val);
       }
     };
-    const onRotateAction = (axis: string, layer: string, dir: string) => {
+    const onRotateAction = (axis: Axis, layer: Layer, dir: Dir) => {
       if (wasm.value != null) {
         wasm.value.rotate(axis, layer, dir);
         rotateStepList.value.push(stepManager.addStep(axis, layer, dir));
       }
     };
+    //
+    const getStepStr = (step: RotateStep): string => {
+      return step.symbolMark.symbol + step.symbolMark.mark;
+    };
     return {
       wasm,
+      //
       showHistory,
       rotateStepList,
+      //
       onControlAction,
-      onRotateAction
+      onRotateAction,
+      //
+      getStepStr
     };
   },
   components: {
