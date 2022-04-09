@@ -71,7 +71,7 @@ sudo docker-compose up
 sudo docker exec -it cubetrain-vuefront bash
 ```
 
-プロジェクト作成（vueコンテナ内）
+プロジェクト作成時（vueコンテナ内）
 
 ```bash
 yarn global add @vue/cli
@@ -89,9 +89,7 @@ yarn add webfontloader
 ### seedコンパイル
 
 ```bash
-cd wasm
-cargo make build_release
-cd ..
+cd wasm && cargo make build_release && cd ..
 ```
 
 ### nginx、vue側へコピー
@@ -119,12 +117,12 @@ cp pkg/package_bg.wasm ../nginx/wasm/package_bg.wasm
 /* eslint-disable */
 ```
 
-### 開発時サービス起動
+### 開発モード起動（vueコンテナ内）
 
 前述コマンドで、vueコンテナへログインして以下コマンド
 
 ```
-cd cubetrain
+cd /vue/cubetrain
 yarn serve
 ```
 
