@@ -272,22 +272,22 @@ export default defineComponent({
     const onKeyOperation = (e: KeyboardEvent) => {
       console.log(e.key.toLowerCase());
       console.log(_getdir(e.key, e.shiftKey));
-      if (e.key.toLowerCase() == 'x') rotateAction("x", "all", _getdir(e.key, e.shiftKey)); else
-      if (e.key.toLowerCase() == 'y') rotateAction("y", "all", _getdir(e.key, e.shiftKey)); else
-      if (e.key.toLowerCase() == 'z') rotateAction("z", "all", _getdir(e.key, e.shiftKey)); else
-      if (e.key.toLowerCase() == 'r') rotateAction("x", "pos", _getdir(e.key, e.shiftKey)); else
-      if (e.key.toLowerCase() == 'u') rotateAction("y", "pos", _getdir(e.key, e.shiftKey)); else
-      if (e.key.toLowerCase() == 'f') rotateAction("z", "pos", _getdir(e.key, e.shiftKey)); else
-      if (e.key.toLowerCase() == 'm') rotateAction("x", "neu", _getdir(e.key, e.shiftKey)); else
-      if (e.key.toLowerCase() == 'e') rotateAction("y", "neu", _getdir(e.key, e.shiftKey)); else
-      if (e.key.toLowerCase() == 's') rotateAction("z", "neu", _getdir(e.key, e.shiftKey)); else
-      if (e.key.toLowerCase() == 'l') rotateAction("x", "neg", _getdir(e.key, e.shiftKey)); else
-      if (e.key.toLowerCase() == 'd') rotateAction("y", "neg", _getdir(e.key, e.shiftKey)); else
-      if (e.key.toLowerCase() == 'b') rotateAction("z", "neg", _getdir(e.key, e.shiftKey));
+      if (e.key.toLowerCase() == "x") rotateAction("x", "all", _getdir(e.key, e.shiftKey)); else
+      if (e.key.toLowerCase() == "y") rotateAction("y", "all", _getdir(e.key, e.shiftKey)); else
+      if (e.key.toLowerCase() == "z") rotateAction("z", "all", _getdir(e.key, e.shiftKey)); else
+      if (e.key.toLowerCase() == "r") rotateAction("x", "pos", _getdir(e.key, e.shiftKey)); else
+      if (e.key.toLowerCase() == "u") rotateAction("y", "pos", _getdir(e.key, e.shiftKey)); else
+      if (e.key.toLowerCase() == "f") rotateAction("z", "pos", _getdir(e.key, e.shiftKey)); else
+      if (e.key.toLowerCase() == "m") rotateAction("x", "neu", _getdir(e.key, e.shiftKey)); else
+      if (e.key.toLowerCase() == "e") rotateAction("y", "neu", _getdir(e.key, e.shiftKey)); else
+      if (e.key.toLowerCase() == "s") rotateAction("z", "neu", _getdir(e.key, e.shiftKey)); else
+      if (e.key.toLowerCase() == "l") rotateAction("x", "neg", _getdir(e.key, e.shiftKey)); else
+      if (e.key.toLowerCase() == "d") rotateAction("y", "neg", _getdir(e.key, e.shiftKey)); else
+      if (e.key.toLowerCase() == "b") rotateAction("z", "neg", _getdir(e.key, e.shiftKey));
     };
     const _getdir = (key: string, shift: boolean): string => {
       const uk = key.toLowerCase();
-      const alt = (['e', 'l', 'd', 'b'].includes(uk));
+      const alt = (["e", "l", "d", "b"].includes(uk));
       if (shift) {
         return alt ? "n" : "p"; 
       } else {
