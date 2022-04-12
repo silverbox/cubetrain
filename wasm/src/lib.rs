@@ -6,6 +6,7 @@
 use seed::{prelude::*, *};
 use web_sys::HtmlCanvasElement;
 use enclose::enc;
+use std::cell::RefCell;
 extern crate rand;
 
 mod cube;
@@ -106,6 +107,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 layer: rotate_target.layer,
                 rad: rotate_target.rad / (model.animation_countdown as f32)
             };
+            ON_ANIMATION.with(|on_animation| on_animation.replace(1));
         },
         Msg::ResetPosition => {
             model.cubeset = CubeSet::default();
@@ -125,6 +127,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 orders.after_next_render(|_| Msg::Rendered);
             } else {
                 model.cubeset.adjust_posistion(&model.animation_rotate_target);
+                ON_ANIMATION.with(|on_animation| on_animation.replace(0));
                 orders.after_next_render(|_| Msg::Rendered).skip();
             }
             draw(model, model.animation_countdown != 0);
@@ -260,4 +263,15 @@ where
     // we want to call given `Closure` more than once.
     closure.forget();
     closure_as_js_value
+}
+
+/*
+ * javaScript連携
+ */
+
+thread_local!(static ON_ANIMATION: RefCell<i32> = RefCell::new(0));
+
+#[wasm_bindgen]
+pub fn on_animation() -> i32 {
+    ON_ANIMATION.with(|sample_cell| sample_cell.borrow().clone())
 }
