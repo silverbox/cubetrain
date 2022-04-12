@@ -144,6 +144,7 @@ http://localhost:8880
 
 - [The Rust Programming Language 日本語版](https://doc.rust-jp.rs/book-ja/title-page.html)
 - [Rust by Example 日本語版](https://doc.rust-jp.rs/rust-by-example-ja/index.html)
+- [Working with a JS Promise and a Rust Future](https://rustwasm.github.io/wasm-bindgen/reference/js-promises-and-rust-futures.html)
 
 ### 個人ページ（公式だったらごめんなさい）
 

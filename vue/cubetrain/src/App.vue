@@ -97,6 +97,7 @@
       v-model="fileImportDialog"
     >
       <v-card>
+        <!-- eslint-disable-next-line -->
         <v-card-text>[　　　　　操作履歴ファイル取込み　　　　　]</v-card-text> <!-- TODO workaround for width -->
         <v-file-input
           accept="text/*"
@@ -117,15 +118,16 @@ import { defineComponent, ref } from 'vue'
 import ControlPanel from './components/ControlPanel.vue'
 import WasmScreen from './components/WasmScreen.vue'
 import { RotateStep, RotateStepManager,  } from '@/class/rotateStepManager'
-import { Axis, Layer, Dir, cubeutils } from '@/class/cubeutils';
+import { Axis, Layer, Dir, RotateInfo, cubeutils } from '@/class/cubeutils';
 const { getRotateInfoFromStr, getRandomRotateInfo } = cubeutils();
+
+import { on_animation } from '@/wasm/package.js';
 
 type fileModeType = "import" | "export" | "";
 
 export default defineComponent({
   name: 'App',
   setup(){
-    const waitMSec = 300; // TODO
     const stepManager: RotateStepManager = new RotateStepManager();
     const wait = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
     //
@@ -140,6 +142,7 @@ export default defineComponent({
     const fileImportDialog = ref<boolean>(false);
     const showHistory = ref<boolean>(false);
     const rotateStepList = ref<Array<RotateStep>>([]);
+    const waitMSec = ref<number>(100);
     //
     const onControlAction = async (type: string, val: number) => {
       if (wasm.value != null) {
@@ -149,13 +152,20 @@ export default defineComponent({
         case "reset":
           onClearStep();
           break;
-        case "scramble":
+        case "scramble": {
           onClearStep();
+          const rotateInfoList: Array<RotateInfo> = [];
           for (var i = 0;i < val; i++) {
-            const { axis, layer, dir } = getRandomRotateInfo();
-            onRotateAction(axis, layer, dir);
-            await wait(waitMSec);
+            rotateInfoList.push(getRandomRotateInfo());
           }
+          bulkRotate(rotateInfoList);
+          break;
+        }
+        case "speed": {
+          waitMSec.value = 100;
+          break;
+        }
+        default:
           break;
       }
     };
@@ -190,14 +200,17 @@ export default defineComponent({
       reader.readAsText(files[0]);
       reader.onload = async () => {
         onClearStep();
+        if (reader.result == null) {
+          return;
+        }
         const stepList = reader.result.toString().split("\n");
+        const rotateInfoList: Array<RotateInfo> = [];
         for (const step of stepList) {
           const rotateInfo = getRotateInfoFromStr(step);
           if (rotateInfo == undefined) continue;
-          const { axis, layer, dir } = rotateInfo;
-          onRotateAction(axis, layer, dir);
-          await wait(waitMSec);
+          rotateInfoList.push(rotateInfo);
         }
+        bulkRotate(rotateInfoList);
       };
     };
     const onExportExecute = () => {
@@ -208,6 +221,27 @@ export default defineComponent({
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
+    };
+    //
+    const bulkIdx = ref<number>(-1);
+    const bulkRotateInfoList = ref<Array<RotateInfo>>([]);
+    const bulkRotate = async (rotateInfoList: Array<RotateInfo>) => {
+      bulkIdx.value = 0;
+      bulkRotateInfoList.value = rotateInfoList;
+      while (bulkIdx.value < rotateInfoList.length) {
+        const { axis, layer, dir } = bulkRotateInfoList.value[bulkIdx.value];
+        onRotateAction(axis, layer, dir);
+
+        let firstwait = true;
+        while (on_animation() == 1) {
+          await wait(waitMSec.value);
+          if (!firstwait) {
+            waitMSec.value = waitMSec.value + 100;
+          }
+          firstwait = false;
+        }
+        bulkIdx.value += 1;
+      }
     };
     //
     const getStepStr = (step: RotateStep): string => {
@@ -230,8 +264,11 @@ export default defineComponent({
       onImportExecute,
       onExportExecute,
       //
-      getStepStr,
+      getStepStr
     };
+  },
+  props: {
+    wasmReady: {type: Boolean, required: false}
   },
   components: {
     ControlPanel,
