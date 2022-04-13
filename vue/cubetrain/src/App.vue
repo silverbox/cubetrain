@@ -52,8 +52,9 @@
               </v-list>
             </v-menu>
           </v-btn>
-
         </v-list-subheader>
+      </v-list>
+      <v-list density="compact" class="history-list">
         <v-list-item
           v-for="(step, i) in rotateStepList"
           :key="i"
@@ -118,7 +119,7 @@ import { defineComponent, ref } from 'vue'
 import ControlPanel from './components/ControlPanel.vue'
 import WasmScreen from './components/WasmScreen.vue'
 import { RotateStep, RotateStepManager,  } from '@/class/rotateStepManager'
-import { Axis, Layer, Dir, RotateInfo, cubeutils } from '@/class/cubeutils';
+import { Axis, Layer, Dir, RotateInfo, RotateStatus, cubeutils } from '@/class/cubeutils';
 const { getRotateInfoFromStr, getRandomRotateInfo } = cubeutils();
 
 import { on_animation } from '@/wasm/package.js';
@@ -140,7 +141,7 @@ export default defineComponent({
     ]);
     //
     const fileImportDialog = ref<boolean>(false);
-    const showHistory = ref<boolean>(false);
+    const showHistory = ref<boolean>(true);
     const rotateStepList = ref<Array<RotateStep>>([]);
     const waitMSec = ref<number>(100);
     //
@@ -153,12 +154,7 @@ export default defineComponent({
           onClearStep();
           break;
         case "scramble": {
-          onClearStep();
-          const rotateInfoList: Array<RotateInfo> = [];
-          for (var i = 0;i < val; i++) {
-            rotateInfoList.push(getRandomRotateInfo());
-          }
-          bulkRotate(rotateInfoList);
+          scramble(val);
           break;
         }
         case "speed": {
@@ -176,11 +172,19 @@ export default defineComponent({
     };
     const onRotateAction = (axis: Axis, layer: Layer, dir: Dir) => {
       if (wasm.value != null) {
-        wasm.value.rotate(axis, layer, dir);
         const step = stepManager.addStep(axis, layer, dir);
         rotateStepList.value.push(step);
       }
+      startRotate();
     };
+    const scramble = (step: number) => {
+      onClearStep();
+      const rotateInfoList: Array<RotateInfo> = [];
+      for (var i = 0;i < step; i++) {
+        rotateInfoList.push(getRandomRotateInfo());
+      }
+      bulkRotate(rotateInfoList);
+    }
     const onMenuClick = (menuid: fileModeType) => {
       switch (menuid) {
         case "import":
@@ -223,26 +227,36 @@ export default defineComponent({
       document.body.removeChild(a);
     };
     //
-    const bulkIdx = ref<number>(-1);
-    const bulkRotateInfoList = ref<Array<RotateInfo>>([]);
-    const bulkRotate = async (rotateInfoList: Array<RotateInfo>) => {
-      bulkIdx.value = 0;
-      bulkRotateInfoList.value = rotateInfoList;
-      while (bulkIdx.value < rotateInfoList.length) {
-        const { axis, layer, dir } = bulkRotateInfoList.value[bulkIdx.value];
-        onRotateAction(axis, layer, dir);
-
-        let firstwait = true;
-        while (on_animation() == 1) {
-          await wait(waitMSec.value);
-          if (!firstwait) {
-            waitMSec.value = waitMSec.value + 100;
-          }
-          firstwait = false;
-        }
-        bulkIdx.value += 1;
+    const bulkRotate = (rotateInfoList: Array<RotateInfo>) => {
+      for (const rotateInfo of rotateInfoList) {
+        const { axis, layer, dir } = rotateInfo;
+        const step = stepManager.addStep(axis, layer, dir);
+        rotateStepList.value.push(step);
       }
+      startRotate();
     };
+    const startRotate = async () => {
+      let wkStep = stepManager.getActiveStep();
+
+      while (wkStep != undefined) {
+        if (wkStep.rotateStatus == "bef") {
+          wasm.value.rotate(wkStep.axis, wkStep.layer, wkStep.dir);
+          setRotateStatus("doing");
+        } else if (wkStep.rotateStatus == "doing") {
+          if (on_animation() == 1) {
+            await wait(waitMSec.value);
+          } else {
+            setRotateStatus("done");
+          }
+        } else {
+          wkStep = stepManager.getActiveStep();
+        }
+      }
+    }
+    const setRotateStatus = (status: RotateStatus) => {
+      stepManager.setRotateStatus(status);
+      rotateStepList.value[stepManager.getActiveIdx()].rotateStatus = status;
+    }
     //
     const getStepStr = (step: RotateStep): string => {
       return stepManager.getStepStr(step);
@@ -281,5 +295,8 @@ export default defineComponent({
   position: absolute;
   right: 2px;
   top: 2px;
+}
+.history-list {
+  height: 500px;
 }
 </style>
