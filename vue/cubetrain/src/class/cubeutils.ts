@@ -3,6 +3,7 @@ export type Layer = "all" | "pos" | "neu" | "neg";
 export type Dir = "p" | "n";
 export type Symbol = "x" | "y" | "z" | "R" | "M" | "L" | "U" | "E" | "D" | "F" | "S" | "B";
 export type RevMark = "'" | "";
+export type RotateStatus = "bef" | "doing" | "done";
 
 export interface RotateInfo {
   axis: Axis;
