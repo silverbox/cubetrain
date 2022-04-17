@@ -291,6 +291,7 @@ export default defineComponent({
       a.click();
       document.body.removeChild(a);
     };
+    //
     const onRevertStep = async (idx: number) => {
       let wkIdx = rotateStepList.value.length - 1;
       while (wkIdx > idx) {

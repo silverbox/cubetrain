@@ -49,6 +49,7 @@ export class RotateStepManager {
     if (removedStepList.length == 0) {
       return undefined;
     }
+    this.rotatingIdx -= 1;
     const removedStep = removedStepList[0];
     return {
       axis: removedStep.axis,
