@@ -6,6 +6,7 @@
       dense
       dark
       priority=0
+      ref="appBar"
     >
       <v-app-bar-nav-icon></v-app-bar-nav-icon>
 
@@ -37,7 +38,7 @@
             <v-icon>mdi-dots-vertical</v-icon>
             <v-menu
               activator="parent"
-              anchor="bottom"
+              anchor="start"
               transition="scale-transition"
               close-on-click=true
             >
@@ -46,6 +47,7 @@
                   v-for="menu in menuitems"
                   :key="menu.id"
                   @click="onMenuClick(menu.id)"
+                  :disabled="!isActiveItem(menu)"
                 >
                   <v-list-item-title>{{ menu.caption }}</v-list-item-title>
                 </v-list-item>
@@ -60,8 +62,29 @@
           :key="i"
           :value="step"
           active-color="primary"
+          @click="onRoteteStepClick(i)"
         >
-          <v-list-item-title v-text="getStepStr(step)"></v-list-item-title>
+          <v-list-item-header>
+            <v-list-item-title v-text="getStepStr(step)"></v-list-item-title>
+            <v-list-item-subtitle v-text="getStepBubStr(step)"></v-list-item-subtitle>
+          </v-list-item-header>
+          <template v-slot:append v-if="step.bookMark != undefined">
+            <v-list-item-avatar end>
+              <v-btn variant="text" color="grey lighten-1" icon="mdi-bookmark"></v-btn>
+            </v-list-item-avatar>
+          </template>
+          <!-- <v-menu activator="parent" close-on-content-click=true anchor="start">
+            <v-list>
+              <v-list-item
+                v-for="(item) in rotateStepMenu"
+                :key="item.id"
+                :value="item.id"
+                @click="onRotateStepMenu($event, item.id, i)"
+              >
+                <v-list-item-title>{{ item.caption }}</v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu> -->
         </v-list-item>
       </v-list>
     </v-navigation-drawer>
@@ -72,8 +95,8 @@
           <v-row>
             <v-col md="4">
               <ControlPanel
-                :defspeed=40
-                :defscramblestep=24
+                :defspeed=100
+                :defscramblestep=10
                 @controlAction="onControlAction"
                 @rotateAction="onRotateAction"
               />
@@ -111,6 +134,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-label ref="dmyLabel"/>
   </v-app>
 </template>
 
@@ -124,7 +148,8 @@ const { getRotateInfoFromStr, getRandomRotateInfo } = cubeutils();
 
 import { on_animation } from '@/wasm/package.js';
 
-type fileModeType = "import" | "export" | "";
+type fileModeType = "import" | "export" | "revert" | "replay" | "";
+// type rotateMenuType = "revert" | "replay" | "";
 
 export default defineComponent({
   name: 'App',
@@ -133,17 +158,25 @@ export default defineComponent({
     const wait = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
     //
     const wasm = ref();
+    const appBar = ref();
     const fileDialogInput = ref();
     const historyMenuButton = ref();
     const menuitems = ref([
       {id: "export", caption: "出力"},
-      {id: "import", caption: "取込"}
+      {id: "import", caption: "取込"},
+      {id: "revert", caption: "ここまで戻す"},
+      // {id: "replay", caption: "ここ以降再生"}
     ]);
+    // const rotateStepMenu = ref([
+    //   {id: "revert", caption: "ここまで戻す"},
+    //   {id: "replay", caption: "ここ以降再生"}
+    // ]);
     //
     const fileImportDialog = ref<boolean>(false);
     const showHistory = ref<boolean>(true);
     const rotateStepList = ref<Array<RotateStep>>([]);
     const waitMSec = ref<number>(100);
+    const selectedStep = ref<number>(-1);
     //
     const onControlAction = async (type: string, val: number) => {
       if (wasm.value != null) {
@@ -169,6 +202,7 @@ export default defineComponent({
       wasm.value.setConfig("reset", 0);
       rotateStepList.value = [];
       stepManager.clearStepList();
+      selectedStep.value = -1;
     };
     const onRotateAction = (axis: Axis, layer: Layer, dir: Dir) => {
       if (wasm.value != null) {
@@ -177,14 +211,15 @@ export default defineComponent({
       }
       startRotate();
     };
-    const scramble = (step: number) => {
+    const scramble = async (step: number) => {
       onClearStep();
       const rotateInfoList: Array<RotateInfo> = [];
       for (var i = 0;i < step; i++) {
         rotateInfoList.push(getRandomRotateInfo());
       }
-      bulkRotate(rotateInfoList);
-    }
+      await bulkRotate(rotateInfoList);
+      stepManager.addBookmark(step - 1, "scramble");
+    };
     const onMenuClick = (menuid: fileModeType) => {
       switch (menuid) {
         case "import":
@@ -193,10 +228,31 @@ export default defineComponent({
         case "export":
           onExportExecute();
           break;
+        case "revert":
+          onRevertStep(selectedStep.value);
+          break;
+        // case "replay":
+        //   onRevertStep(selectedStep.value);
+        //   break;
       }
       historyMenuButton.value.$el.click(); // TODO workaround for close-on-click
     };
-    const onImportExecute = () => {
+    const onRoteteStepClick = (idx: number) => {
+      selectedStep.value = idx;
+    };
+    // const onRotateStepMenu = (event: Event, menuid: rotateMenuType, index: number) => {
+    //   console.log(menuid + ":" + index);
+    //   switch (menuid) {
+    //     case "revert":
+    //       break;
+    //     case "replay":
+    //       stepManager.revertRotated(index);
+    //       startRotate();
+    //       break;
+    //   }
+    //   appBar.value.$el.click(); // TODO workaround for close-on-click
+    // };
+    const onImportExecute = async () => {
       fileImportDialog.value = false;
       const inputElem = fileDialogInput.value.$el.getElementsByTagName('input')[0]; // TODO workaround for file-input value
       const files = inputElem.files;
@@ -207,14 +263,23 @@ export default defineComponent({
         if (reader.result == null) {
           return;
         }
-        const stepList = reader.result.toString().split("\n");
+        const stepStrList = reader.result.toString().split("\n");
         const rotateInfoList: Array<RotateInfo> = [];
-        for (const step of stepList) {
-          const rotateInfo = getRotateInfoFromStr(step);
+        const bookmarkMap: any = new Map();
+        for (const stepStr of stepStrList) {
+          const wkStrList = stepStr.split(" ");
+          if (wkStrList.length == 0) continue;
+          const rotateInfo = getRotateInfoFromStr(wkStrList[0]);
           if (rotateInfo == undefined) continue;
           rotateInfoList.push(rotateInfo);
+          if (wkStrList.length > 1) {
+            bookmarkMap.set(rotateInfoList.length - 1, wkStrList[1]);
+          }
         }
-        bulkRotate(rotateInfoList);
+        await bulkRotate(rotateInfoList);
+        for (const key of bookmarkMap.keys()) {
+          stepManager.addBookmark(key, bookmarkMap.get(key));
+        }
       };
     };
     const onExportExecute = () => {
@@ -226,8 +291,25 @@ export default defineComponent({
       a.click();
       document.body.removeChild(a);
     };
+    const onRevertStep = async (idx: number) => {
+      let wkIdx = rotateStepList.value.length - 1;
+      while (wkIdx > idx) {
+        if (on_animation() == 1) {
+          await wait(waitMSec.value);
+          continue;
+        } else {
+          const wkStep = stepManager.revertStep(wkIdx);
+          if (wkStep == undefined) {
+            continue;
+          }
+          wasm.value.rotate(wkStep.axis, wkStep.layer, wkStep.dir);
+          rotateStepList.value.splice(-1, 1);
+          wkIdx--;
+        }
+      }
+    };
     //
-    const bulkRotate = (rotateInfoList: Array<RotateInfo>) => {
+    const bulkRotate = async (rotateInfoList: Array<RotateInfo>) => {
       for (const rotateInfo of rotateInfoList) {
         const { axis, layer, dir } = rotateInfo;
         const step = stepManager.addStep(axis, layer, dir);
@@ -261,11 +343,25 @@ export default defineComponent({
     const getStepStr = (step: RotateStep): string => {
       return stepManager.getStepStr(step);
     };
+    const getStepBubStr = (step: RotateStep): string => {
+      if (step.bookMark == undefined) {
+        return "";
+      }
+      return step.bookMark.name;
+    };
+    const isActiveItem = (menuitem: any): boolean => {
+      if (menuitem.id == "import" || menuitem.id == "export") {
+        return true;
+      }
+      return selectedStep.value >= 0;
+    };
     //
     return {
       wasm,
+      appBar,
       fileDialogInput,
       menuitems,
+      // rotateStepMenu,
       historyMenuButton,
       //
       fileImportDialog,
@@ -275,10 +371,14 @@ export default defineComponent({
       onControlAction,
       onRotateAction,
       onMenuClick,
+      onRoteteStepClick,
+      // onRotateStepMenu,
       onImportExecute,
       onExportExecute,
       //
-      getStepStr
+      getStepStr,
+      getStepBubStr,
+      isActiveItem
     };
   },
   props: {
