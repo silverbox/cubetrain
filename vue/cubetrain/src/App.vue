@@ -179,11 +179,17 @@ export default defineComponent({
     };
     const scramble = (step: number) => {
       onClearStep();
-      const rotateInfoList: Array<RotateInfo> = [];
+      // const rotateInfoList: Array<RotateInfo> = [];
+      let bulkRotateStr = "";
       for (var i = 0;i < step; i++) {
-        rotateInfoList.push(getRandomRotateInfo());
+        const rotateInfo = getRandomRotateInfo();
+        const rotateStr = `${rotateInfo.axis},${rotateInfo.layer},${rotateInfo.dir}`
+        if (bulkRotateStr != "") bulkRotateStr += ";";
+        bulkRotateStr += rotateStr;
+        // rotateInfoList.push(rotateInfo);
       }
-      bulkRotate(rotateInfoList);
+      wasm.value.setConfig("bulkrotate", bulkRotateStr);
+      //bulkRotate(rotateInfoList);
     }
     const onMenuClick = (menuid: fileModeType) => {
       switch (menuid) {
