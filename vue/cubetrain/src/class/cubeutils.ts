@@ -40,7 +40,7 @@ export const cubeutils = () => {
           case "all": return { symbol: "z", mark: _getReverseMark(dir, false)};
           case "pos": return { symbol: "F", mark: _getReverseMark(dir, false)};
           case "neu": return { symbol: "S", mark: _getReverseMark(dir, false)};
-          case "neg": return { symbol: "D", mark: _getReverseMark(dir, true)};
+          case "neg": return { symbol: "B", mark: _getReverseMark(dir, true)};
         }
         break; // workaround
     }
