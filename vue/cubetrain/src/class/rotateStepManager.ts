@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { Axis, Layer, Dir, SymbolMark, RotateStatus, cubeutils } from '@/class/cubeutils';
+import { Axis, Layer, Dir, SymbolMark, RotateStatus, RotateInfo, cubeutils } from '@/class/cubeutils';
 const { getRotateSymbol } = cubeutils();
 
 export interface RotateStep {
@@ -9,15 +9,10 @@ export interface RotateStep {
   dir: Dir;
   symbolMark: SymbolMark;
   rotateStatus: RotateStatus;
-}
-
-interface RotateBookmark {
-  name: string;
-  steps: Array<RotateStep>;
+  bookmark: string;
 }
 
 export class RotateStepManager {
-  bookMarkList: Array<RotateBookmark> = [];
   currentStepList: Array<RotateStep> = [];
 
   rotatingIdx = 0;
@@ -48,27 +43,55 @@ export class RotateStepManager {
     return undefined;
   }
 
+  setBookmark = (idx: number, bookmark: string) => {
+    this.currentStepList[idx].bookmark = bookmark;
+  }
+
   setRotateStatus = (rotateStatus: RotateStatus) => {
     this.currentStepList[this.rotatingIdx].rotateStatus = rotateStatus;
   }
 
-  addStep = (axis: Axis, layer: Layer, dir: Dir): RotateStep => {
+  addStep = (axis: Axis, layer: Layer, dir: Dir, bookmark: string): RotateStep => {
     const step: RotateStep = {
       rid: uuidv4(),
       axis: axis,
       layer: layer,
       dir: dir,
       symbolMark: getRotateSymbol(axis, layer, dir),
-      rotateStatus: "bef"
+      rotateStatus: "bef",
+      bookmark: bookmark
     }
     this.currentStepList.push(step);
     return step;
   };
 
+  revertRotateStatus = (beginIdx: number) => {
+    for (let wkIdx = beginIdx + 1; wkIdx < this.currentStepList.length; wkIdx++) {
+      this.currentStepList[wkIdx].rotateStatus = "bef";
+    }
+    this.rotatingIdx = beginIdx + 1;
+  };
+
+  revertStep = (): RotateInfo | undefined => {
+    const removedStepList = this.currentStepList.splice(-1, 1);
+    if (removedStepList.length == 0) {
+      return undefined;
+    }
+    this.rotatingIdx -= 1;
+    const removedStep = removedStepList[0];
+    return {
+      axis: removedStep.axis,
+      layer: removedStep.layer,
+      dir: removedStep.dir == "p" ? "n" : "p"
+    }
+  }
+
   getStepListStr = (): string => {
     let retStr = "";
     for (const step of this.currentStepList) {
-      retStr += (this.getStepStr(step) + "\n");
+      retStr += this.getStepStr(step);
+      if (step.bookmark != "") retStr += (" " + step.bookmark);
+      retStr += "\n";
     }
     return retStr;
   };

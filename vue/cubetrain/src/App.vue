@@ -6,6 +6,7 @@
       dense
       dark
       priority=0
+      ref="appBar"
     >
       <v-app-bar-nav-icon></v-app-bar-nav-icon>
 
@@ -37,7 +38,7 @@
             <v-icon>mdi-dots-vertical</v-icon>
             <v-menu
               activator="parent"
-              anchor="bottom"
+              anchor="start"
               transition="scale-transition"
               close-on-click=true
             >
@@ -45,6 +46,7 @@
                 <v-list-item
                   v-for="menu in menuitems"
                   :key="menu.id"
+                  :disabled="!isActiveItem(menu)"
                   @click="onMenuClick(menu.id)"
                 >
                   <v-list-item-title>{{ menu.caption }}</v-list-item-title>
@@ -54,14 +56,23 @@
           </v-btn>
         </v-list-subheader>
       </v-list>
-      <v-list density="compact" class="history-list">
+      <v-list density="compact" class="history-list" ref="rotateStepListElem">
         <v-list-item
           v-for="(step, i) in rotateStepList"
           :key="i"
           :value="step"
           active-color="primary"
+          @click="onRoteteStepClick(i)"
         >
-          <v-list-item-title v-text="getStepStr(step)"></v-list-item-title>
+          <v-list-item-header>
+            <v-list-item-title v-text="getStepStr(step)"></v-list-item-title>
+             <v-list-item-subtitle v-text="getStepSubstr(step)"></v-list-item-subtitle>
+          </v-list-item-header>
+          <template v-slot:append v-if="step.bookmark != ''">
+            <v-list-item-avatar end>
+              <v-btn variant="text" color="grey lighten-1" icon="mdi-bookmark"></v-btn>
+            </v-list-item-avatar>
+          </template>
         </v-list-item>
       </v-list>
     </v-navigation-drawer>
@@ -119,31 +130,37 @@ import { defineComponent, ref } from 'vue'
 import ControlPanel from './components/ControlPanel.vue'
 import WasmScreen from './components/WasmScreen.vue'
 import { RotateStep, RotateStepManager,  } from '@/class/rotateStepManager'
-import { Axis, Layer, Dir, RotateInfo, RotateStatus, cubeutils } from '@/class/cubeutils';
+import { Axis, Layer, Dir, RotateStatus, cubeutils } from '@/class/cubeutils';
 const { getRotateInfoFromStr, getRandomRotateInfo } = cubeutils();
 
 import { on_animation } from '@/wasm/package.js';
 
-type fileModeType = "import" | "export" | "";
+type stepMenuType = "import" | "export" | "revert" | "replay" | "";
 
 export default defineComponent({
   name: 'App',
   setup(){
     const stepManager: RotateStepManager = new RotateStepManager();
     const wait = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+    
     //
     const wasm = ref();
+    const appBar = ref();
     const fileDialogInput = ref();
     const historyMenuButton = ref();
+    const rotateStepListElem = ref();
     const menuitems = ref([
       {id: "export", caption: "出力"},
-      {id: "import", caption: "取込"}
+      {id: "import", caption: "取込"},
+      {id: "revert", caption: "ここまで戻す"},
+      {id: "replay", caption: "ここ以降再生"},
     ]);
     //
     const fileImportDialog = ref<boolean>(false);
     const showHistory = ref<boolean>(true);
-    const rotateStepList = ref<Array<RotateStep>>([]);
     const waitMSec = ref<number>(100);
+    const rotateStepList = ref<Array<RotateStep>>(stepManager.getCurrentStepList());
+    const selectedStep = ref<number>(-1);
     //
     const onControlAction = async (type: string, val: number) => {
       if (wasm.value != null) {
@@ -167,31 +184,46 @@ export default defineComponent({
     };
     const onClearStep = () => {
       wasm.value.setConfig("reset", 0);
-      rotateStepList.value = [];
       stepManager.clearStepList();
+      selectedStep.value = -1;
+      rotateStepList.value = stepManager.getCurrentStepList(); // workaround
+      rotateStepListElem.value.$forceUpdate(); // workaround
     };
     const onRotateAction = (axis: Axis, layer: Layer, dir: Dir) => {
       if (wasm.value != null) {
-        const step = stepManager.addStep(axis, layer, dir);
-        rotateStepList.value.push(step);
+        stepManager.addStep(axis, layer, dir, "");
+        // rotateStepList.value = stepManager.getCurrentStepList(); // workaround
+        rotateStepListElem.value.$forceUpdate(); // workaround
       }
       startRotate();
     };
     const scramble = (step: number) => {
       onClearStep();
-      const rotateInfoList: Array<RotateInfo> = [];
       for (var i = 0;i < step; i++) {
-        rotateInfoList.push(getRandomRotateInfo());
+        const rotateInfo = getRandomRotateInfo();
+        const { axis, layer, dir } = rotateInfo;
+        const bookmark = (i == step - 1) ? "scramble" : "";
+        stepManager.addStep(axis, layer, dir, bookmark);
       }
-      bulkRotate(rotateInfoList);
-    }
-    const onMenuClick = (menuid: fileModeType) => {
+      startRotate();
+      rotateStepListElem.value.$forceUpdate(); // workaround
+    };
+    const onRoteteStepClick = (idx: number) => {
+      selectedStep.value = idx;
+    };
+    const onMenuClick = (menuid: stepMenuType) => {
       switch (menuid) {
         case "import":
           fileImportDialog.value = true;
           break;
         case "export":
           onExportExecute();
+          break;
+        case "revert":
+          onRevertStep(selectedStep.value);
+          break;
+        case "replay":
+          onReply(selectedStep.value);
           break;
       }
       historyMenuButton.value.$el.click(); // TODO workaround for close-on-click
@@ -207,15 +239,47 @@ export default defineComponent({
         if (reader.result == null) {
           return;
         }
-        const stepList = reader.result.toString().split("\n");
-        const rotateInfoList: Array<RotateInfo> = [];
-        for (const step of stepList) {
-          const rotateInfo = getRotateInfoFromStr(step);
+        const stepStrList = reader.result.toString().split("\n");
+        for (const stepStr of stepStrList) {
+          const wkStep = stepStr.split(" ");
+          const rotateInfo = getRotateInfoFromStr(wkStep[0]);
           if (rotateInfo == undefined) continue;
-          rotateInfoList.push(rotateInfo);
+          const { axis, layer, dir } = rotateInfo;
+          const bookmark = (wkStep.length > 1) ? wkStep[1] : "";
+          stepManager.addStep(axis, layer, dir, bookmark);
         }
-        bulkRotate(rotateInfoList);
+        startRotate();
+        rotateStepListElem.value.$forceUpdate(); // workaround
       };
+    };
+    const onRevertStep = async (idx: number) => {
+      let wkIdx = rotateStepList.value.length - 1;
+      while (wkIdx > idx) {
+        if (on_animation() == 1) {
+          await wait(waitMSec.value);
+          continue;
+        } else {
+          const wkStep = stepManager.revertStep();
+          if (wkStep == undefined) {
+            continue;
+          }
+          rotateStepListElem.value.$forceUpdate(); // workaround
+          wasm.value.rotate(wkStep.axis, wkStep.layer, wkStep.dir);
+          wkIdx--;
+        }
+      }
+    };
+    const onReply = async (idx: number) => {
+      let bulkRotateStr = "";
+      for (var i = 0;i <= idx; i++) {
+        const { axis, layer, dir } = rotateStepList.value[i];
+        const rotateStr = `${axis},${layer},${dir}`
+        if (bulkRotateStr != "") bulkRotateStr += ";";
+        bulkRotateStr += rotateStr;
+      }
+      wasm.value.setConfig("bulkrotate", bulkRotateStr);
+      stepManager.revertRotateStatus(idx);
+      startRotate();
     };
     const onExportExecute = () => {
       const a = document.createElement('a');
@@ -227,14 +291,6 @@ export default defineComponent({
       document.body.removeChild(a);
     };
     //
-    const bulkRotate = (rotateInfoList: Array<RotateInfo>) => {
-      for (const rotateInfo of rotateInfoList) {
-        const { axis, layer, dir } = rotateInfo;
-        const step = stepManager.addStep(axis, layer, dir);
-        rotateStepList.value.push(step);
-      }
-      startRotate();
-    };
     const startRotate = async () => {
       let wkStep = stepManager.getActiveStep();
 
@@ -255,18 +311,31 @@ export default defineComponent({
     }
     const setRotateStatus = (status: RotateStatus) => {
       stepManager.setRotateStatus(status);
-      rotateStepList.value[stepManager.getActiveIdx()].rotateStatus = status;
     }
     //
     const getStepStr = (step: RotateStep): string => {
       return stepManager.getStepStr(step);
     };
+    const getStepSubstr = (step: RotateStep): string => {
+      if (step.bookmark == undefined) {
+        return "";
+      }
+      return step.bookmark;
+    };
+    const isActiveItem = (menuitem: any): boolean => {
+      if (menuitem.id == "import" || menuitem.id == "export") {
+        return true;
+      }
+      return selectedStep.value >= 0;
+    };
     //
     return {
       wasm,
+      appBar,
       fileDialogInput,
       menuitems,
       historyMenuButton,
+      rotateStepListElem,
       //
       fileImportDialog,
       showHistory,
@@ -277,8 +346,11 @@ export default defineComponent({
       onMenuClick,
       onImportExecute,
       onExportExecute,
+      onRoteteStepClick,
       //
-      getStepStr
+      getStepStr,
+      getStepSubstr,
+      isActiveItem
     };
   },
   props: {

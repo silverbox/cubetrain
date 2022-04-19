@@ -86,6 +86,7 @@ enum Msg {
     Rendered,
     ResetPosition,
     ScramblePosition,
+    BulkRotate(String),
 }
 
 // `update` describes how to handle each `Msg`.
@@ -117,6 +118,18 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             for _i in 0..model.scramble_step {
                 model.cubeset.rotate_layer(&RotateTarget::random(PI / 2.0));
             }
+        },
+        Msg::BulkRotate(input_val) => {
+            model.cubeset = CubeSet::default();
+            let rotate_stepstr_vec: Vec<&str> = input_val.split(";").collect();
+            for rotate_stepstr in rotate_stepstr_vec.into_iter() {
+                let rotate_elemstr_vec: Vec<&str> = rotate_stepstr.split(",").collect();
+                let axisstr = rotate_elemstr_vec[0].to_string();
+                let layerstr = rotate_elemstr_vec[1].to_string();
+                let dirstr = rotate_elemstr_vec[2].to_string();
+                let rotate_target = get_rotate_target(axisstr, layerstr, dirstr);
+                model.cubeset.rotate_layer(&rotate_target);
+            };
         },
         Msg::Rendered => {
             // We want to call `.skip` to prevent infinite loop.
@@ -209,6 +222,9 @@ fn create_closures_for_js(app: &App<Msg, Model, Node<Msg>>) -> Box<[JsValue]> {
             "scramble" => {
                 app.update(Msg::ScrambleStepChanged(valuestr));
                 app.update(Msg::ScramblePosition);
+            },
+            "bulkrotate" => {
+                app.update(Msg::BulkRotate(valuestr));
             },
             _ => {
                 app.update(Msg::ResetPosition);
