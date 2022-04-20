@@ -8,9 +8,9 @@
       priority=0
       ref="appBar"
     >
-      <v-app-bar-nav-icon></v-app-bar-nav-icon>
+      <v-app-bar-nav-icon @click="showConfigMenu = !showConfigMenu"></v-app-bar-nav-icon>
 
-      <v-toolbar-title>Page title</v-toolbar-title>
+      <v-toolbar-title>ルービック・キューブ訓練アプリ</v-toolbar-title>
 
       <v-spacer></v-spacer>
 
@@ -23,8 +23,12 @@
       </v-btn>
     </v-app-bar>
 
-    <v-navigation-drawer permanent>
-      <!-- -->
+    <v-navigation-drawer permanent v-if="showConfigMenu">
+      <ControlPanel
+        :defspeed=40
+        :defscramblestep=24
+        @controlAction="onControlAction"
+      />
     </v-navigation-drawer>
 
     <v-navigation-drawer permanent position="right" v-if="showHistory">
@@ -56,7 +60,7 @@
           </v-btn>
         </v-list-subheader>
       </v-list>
-      <v-list density="compact" class="history-list" ref="rotateStepListElem">
+      <v-list density="compact" class="history-list" ref="rotateStepListElem" :height="roteteStepListHeight" three-line>
         <v-list-item
           v-for="(step, i) in rotateStepList"
           :key="i"
@@ -82,10 +86,7 @@
         <v-container class="grey lighten-5" fluid>
           <v-row>
             <v-col md="4">
-              <ControlPanel
-                :defspeed=40
-                :defscramblestep=24
-                @controlAction="onControlAction"
+              <RotationPanel
                 @rotateAction="onRotateAction"
               />
             </v-col>
@@ -110,10 +111,11 @@
     >
       <v-card>
         <!-- eslint-disable-next-line -->
-        <v-card-text>[　　　　　操作履歴ファイル取込み　　　　　]</v-card-text> <!-- TODO workaround for width -->
+        <v-card-text>[操作履歴ファイル取込み]</v-card-text> <!-- TODO workaround for width -->
         <v-file-input
           accept="text/*"
           ref="fileDialogInput"
+          class="dialog-main"
         ></v-file-input>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -126,7 +128,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue'
+import { defineComponent, ref, onMounted, onUnmounted } from 'vue'
+import RotationPanel from './components/RotationPanel.vue'
 import ControlPanel from './components/ControlPanel.vue'
 import WasmScreen from './components/WasmScreen.vue'
 import { RotateStep, RotateStepManager,  } from '@/class/rotateStepManager'
@@ -157,10 +160,12 @@ export default defineComponent({
     ]);
     //
     const fileImportDialog = ref<boolean>(false);
+    const showConfigMenu = ref<boolean>(true);
     const showHistory = ref<boolean>(true);
     const waitMSec = ref<number>(100);
     const rotateStepList = ref<Array<RotateStep>>(stepManager.getCurrentStepList());
     const selectedStep = ref<number>(-1);
+    const roteteStepListHeight = ref<number>(500);
     //
     const onControlAction = async (type: string, val: number) => {
       if (wasm.value != null) {
@@ -329,6 +334,17 @@ export default defineComponent({
       return selectedStep.value >= 0;
     };
     //
+    const onResize = () => {
+      roteteStepListHeight.value = document.documentElement.clientHeight - 130;
+    }
+    onMounted(() => {
+      window.addEventListener('resize', onResize);
+      onResize();
+    });
+    onUnmounted(() => {
+      window.removeEventListener('resize', onResize);
+    });
+    //
     return {
       wasm,
       appBar,
@@ -336,8 +352,10 @@ export default defineComponent({
       menuitems,
       historyMenuButton,
       rotateStepListElem,
+      roteteStepListHeight,
       //
       fileImportDialog,
+      showConfigMenu,
       showHistory,
       rotateStepList,
       //
@@ -358,6 +376,7 @@ export default defineComponent({
   },
   components: {
     ControlPanel,
+    RotationPanel,
     WasmScreen
   },
 })
@@ -368,7 +387,9 @@ export default defineComponent({
   right: 2px;
   top: 2px;
 }
-.history-list {
-  height: 500px;
+.dialog-main {
+  width: 500px;
+  margin-left: 10px;
+  margin-right: 30px;
 }
 </style>
