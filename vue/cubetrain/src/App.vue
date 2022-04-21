@@ -26,7 +26,7 @@
     <v-navigation-drawer permanent v-if="showConfigMenu">
       <ControlPanel
         :defspeed=40
-        :defscramblestep=4
+        :defscramblestep=24
         @controlAction="onControlAction"
       />
     </v-navigation-drawer>
