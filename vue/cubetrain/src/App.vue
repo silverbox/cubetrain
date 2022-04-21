@@ -110,17 +110,32 @@
       v-model="fileImportDialog"
     >
       <v-card>
-        <!-- eslint-disable-next-line -->
-        <v-card-text>[操作履歴ファイル取込み]</v-card-text> <!-- TODO workaround for width -->
+        <v-card-text>操作履歴ファイル取込み</v-card-text>
         <v-file-input
           accept="text/*"
-          ref="fileDialogInput"
+          v-model="importTagetfile"
           class="dialog-main"
         ></v-file-input>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn @click="onImportExecute">取込</v-btn>
           <v-btn color="primary" @click="fileImportDialog = false">Close</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-dialog
+      v-model="showBookmarkDialog"
+    >
+      <v-card>
+        <v-card-text>ブックマーク</v-card-text>
+        <v-text-field
+          v-model="editingBookmark"
+          class="dialog-main"
+        ></v-text-field>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn @click="onBookmarkChanged">決定</v-btn>
+          <v-btn color="primary" @click="showBookmarkDialog = false">Close</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -138,7 +153,7 @@ const { getRotateInfoFromStr, getRandomRotateInfo } = cubeutils();
 
 import { on_animation } from '@/wasm/package.js';
 
-type stepMenuType = "import" | "export" | "revert" | "replay" | "";
+type stepMenuType = "import" | "export" | "revert" | "replay" | "bookmark";
 
 export default defineComponent({
   name: 'App',
@@ -149,7 +164,6 @@ export default defineComponent({
     //
     const wasm = ref();
     const appBar = ref();
-    const fileDialogInput = ref();
     const historyMenuButton = ref();
     const rotateStepListElem = ref();
     const menuitems = ref([
@@ -157,11 +171,15 @@ export default defineComponent({
       {id: "import", caption: "取込"},
       {id: "revert", caption: "ここまで戻す"},
       {id: "replay", caption: "ここ以降再生"},
+      {id: "bookmark", caption: "ブックマーク"},
     ]);
     //
     const fileImportDialog = ref<boolean>(false);
     const showConfigMenu = ref<boolean>(true);
     const showHistory = ref<boolean>(true);
+    const showBookmarkDialog = ref<boolean>(false);
+    const importTagetfile = ref<any>(undefined);
+    const editingBookmark = ref<string>("");
     const waitMSec = ref<number>(100);
     const rotateStepList = ref<Array<RotateStep>>(stepManager.getCurrentStepList());
     const selectedStep = ref<number>(-1);
@@ -228,15 +246,17 @@ export default defineComponent({
           onRevertStep(selectedStep.value);
           break;
         case "replay":
-          onReply(selectedStep.value);
+          onReplay(selectedStep.value);
+          break;
+        case "bookmark":
+          onEditBookmark();
           break;
       }
       historyMenuButton.value.$el.click(); // TODO workaround for close-on-click
     };
     const onImportExecute = () => {
       fileImportDialog.value = false;
-      const inputElem = fileDialogInput.value.$el.getElementsByTagName('input')[0]; // TODO workaround for file-input value
-      const files = inputElem.files;
+      const files = importTagetfile.value;
       const reader = new FileReader();
       reader.readAsText(files[0]);
       reader.onload = async () => {
@@ -257,9 +277,18 @@ export default defineComponent({
         rotateStepListElem.value.$forceUpdate(); // workaround
       };
     };
-    const onRevertStep = async (idx: number) => {
+    const onExportExecute = () => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([stepManager.getStepListStr()], {type: 'text/plain'}));
+      a.download = "history.txt";
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    };
+    const onRevertStep = async (stepIndex: number) => {
       let wkIdx = rotateStepList.value.length - 1;
-      while (wkIdx > idx) {
+      while (wkIdx > stepIndex) {
         if (on_animation() == 1) {
           await wait(waitMSec.value);
           continue;
@@ -274,26 +303,26 @@ export default defineComponent({
         }
       }
     };
-    const onReply = async (idx: number) => {
+    const onReplay = async (stepIndex: number) => {
       let bulkRotateStr = "";
-      for (var i = 0;i <= idx; i++) {
+      for (var i = 0;i <= stepIndex; i++) {
         const { axis, layer, dir } = rotateStepList.value[i];
         const rotateStr = `${axis},${layer},${dir}`
         if (bulkRotateStr != "") bulkRotateStr += ";";
         bulkRotateStr += rotateStr;
       }
       wasm.value.setConfig("bulkrotate", bulkRotateStr);
-      stepManager.revertRotateStatus(idx);
+      stepManager.revertRotateStatus(stepIndex);
       startRotate();
     };
-    const onExportExecute = () => {
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(new Blob([stepManager.getStepListStr()], {type: 'text/plain'}));
-      a.download = "history.txt";
-      a.style.display = 'none';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+    const onEditBookmark = () => {
+      editingBookmark.value = rotateStepList.value[selectedStep.value].bookmark;
+      showBookmarkDialog.value = true;
+    };
+    const onBookmarkChanged = () => {
+      showBookmarkDialog.value = false;
+      rotateStepList.value[selectedStep.value].bookmark = editingBookmark.value;
+      rotateStepListElem.value.$forceUpdate(); // workaround
     };
     //
     const startRotate = async () => {
@@ -348,7 +377,6 @@ export default defineComponent({
     return {
       wasm,
       appBar,
-      fileDialogInput,
       menuitems,
       historyMenuButton,
       rotateStepListElem,
@@ -358,6 +386,9 @@ export default defineComponent({
       showConfigMenu,
       showHistory,
       rotateStepList,
+      showBookmarkDialog,
+      importTagetfile,
+      editingBookmark,
       //
       onControlAction,
       onRotateAction,
@@ -365,6 +396,7 @@ export default defineComponent({
       onImportExecute,
       onExportExecute,
       onRoteteStepClick,
+      onBookmarkChanged,
       //
       getStepStr,
       getStepSubstr,
