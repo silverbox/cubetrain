@@ -34,7 +34,8 @@ export class RotateStepManager {
   }
 
   getActiveStep = (): RotateStep | undefined => {
-    for (let wkIdx = this.rotatingIdx; wkIdx < this.currentStepList.length; wkIdx++) {
+    const statrIdx = this.rotatingIdx < 0 ? 0 : this.rotatingIdx;
+    for (let wkIdx = statrIdx; wkIdx < this.currentStepList.length; wkIdx++) {
       const wkStep = this.currentStepList[wkIdx];
       if (wkStep.rotateStatus == "done") continue;
       this.rotatingIdx = wkIdx;
@@ -66,10 +67,27 @@ export class RotateStepManager {
   };
 
   revertRotateStatus = (beginIdx: number) => {
+    for (let wkIdx = 0; wkIdx < beginIdx; wkIdx++) {
+      this.currentStepList[wkIdx].rotateStatus = "done";
+    }
     for (let wkIdx = beginIdx + 1; wkIdx < this.currentStepList.length; wkIdx++) {
       this.currentStepList[wkIdx].rotateStatus = "bef";
     }
     this.rotatingIdx = beginIdx + 1;
+  };
+
+  revertOneRotateStep = (): RotateInfo | undefined => {
+    if (this.rotatingIdx < 0 || this.rotatingIdx >= this.currentStepList.length) {
+      return undefined;
+    }
+    this.currentStepList[this.rotatingIdx].rotateStatus = "bef";
+    const revertStep = this.currentStepList[this.rotatingIdx];
+    this.rotatingIdx -= 1;
+    return {
+      axis: revertStep.axis,
+      layer: revertStep.layer,
+      dir: revertStep.dir == "p" ? "n" : "p"
+    }
   };
 
   revertStep = (): RotateInfo | undefined => {
@@ -77,8 +95,11 @@ export class RotateStepManager {
     if (removedStepList.length == 0) {
       return undefined;
     }
-    this.rotatingIdx -= 1;
     const removedStep = removedStepList[0];
+    if (removedStep.rotateStatus != "done") {
+      return undefined;
+    }
+    this.rotatingIdx -= 1;
     return {
       axis: removedStep.axis,
       layer: removedStep.layer,
