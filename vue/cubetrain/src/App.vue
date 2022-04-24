@@ -14,13 +14,13 @@
 
       <v-spacer></v-spacer>
 
-      <v-btn icon>
+      <!-- <v-btn icon>
         <v-icon>mdi-heart</v-icon>
       </v-btn>
 
       <v-btn icon>
         <v-icon>mdi-magnify</v-icon>
-      </v-btn>
+      </v-btn> -->
     </v-app-bar>
 
     <v-navigation-drawer permanent v-if="showConfigMenu">
@@ -33,10 +33,16 @@
 
     <v-navigation-drawer permanent position="right" v-if="showHistory">
       <v-list density="compact">
-        <v-list-subheader>操作履歴
+        <v-list-subheader>操作履歴</v-list-subheader>
+        <v-list-subheader>
+          <v-btn width="30" flat @click="onPlaybackOneStep">
+            <v-icon>mdi-chevron-left</v-icon>
+          </v-btn>
+          <v-btn width="30" flat @click="onPlayforwardOneStep">
+            <v-icon>mdi-chevron-right</v-icon>
+          </v-btn>
           <v-btn
             flat
-            class="history-button"
             ref="historyMenuButton"
           >
             <v-icon>mdi-dots-vertical</v-icon>
@@ -65,8 +71,10 @@
           v-for="(step, i) in rotateStepList"
           :key="i"
           :value="step"
+          :active-class="activeRotateStepClass"
+          :class="getStepClass(step)"
           active-color="primary"
-          @click="onRoteteStepClick(i)"
+          @click="onRoteteStepClick($event, i)"
         >
           <v-list-item-header>
             <v-list-item-title v-text="getStepStr(step)"></v-list-item-title>
@@ -161,11 +169,12 @@ export default defineComponent({
     const stepManager: RotateStepManager = new RotateStepManager();
     const wait = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
     
-    //
+    // ref
     const wasm = ref();
     const appBar = ref();
     const historyMenuButton = ref();
     const rotateStepListElem = ref();
+    // const
     const menuitems = ref([
       {id: "export", caption: "出力"},
       {id: "import", caption: "取込"},
@@ -173,6 +182,7 @@ export default defineComponent({
       {id: "replay", caption: "ここ以降再生"},
       {id: "bookmark", caption: "ブックマーク"},
     ]);
+    const activeRotateStepClass = ref<string>("active-rotatestep");
     //
     const fileImportDialog = ref<boolean>(false);
     const showConfigMenu = ref<boolean>(true);
@@ -218,7 +228,9 @@ export default defineComponent({
         // rotateStepList.value = stepManager.getCurrentStepList(); // workaround
         rotateStepListElem.value.$forceUpdate(); // workaround
       }
-      startRotate();
+      if (on_animation() == 0) {
+        startRotate();
+      }
     };
     const scramble = (step: number) => {
       onClearStep();
@@ -231,7 +243,7 @@ export default defineComponent({
       startRotate();
       rotateStepListElem.value.$forceUpdate(); // workaround
     };
-    const onRoteteStepClick = (idx: number) => {
+    const onRoteteStepClick = (event: any, idx: number) => {
       selectedStep.value = idx;
     };
     const onMenuClick = (menuid: stepMenuType) => {
@@ -315,6 +327,27 @@ export default defineComponent({
       stepManager.revertRotateStatus(stepIndex);
       startRotate();
     };
+    const onPlaybackOneStep = async () => {
+      if (on_animation() == 1) {
+        return;
+      }
+      const counterStep = stepManager.revertOneRotateStep();
+      if (counterStep == undefined) {
+        return;
+      }
+      wasm.value.rotate(counterStep.axis, counterStep.layer, counterStep.dir);
+      rotateStepListElem.value.$forceUpdate(); // workaround
+    };
+    const onPlayforwardOneStep = async () => {
+      if (on_animation() == 1) {
+        return;
+      }
+      let wkStep = stepManager.getActiveStep();
+      if (wkStep == undefined) {
+        return;
+      }
+      await rotateOneStep(wkStep);
+    };
     const onEditBookmark = () => {
       editingBookmark.value = rotateStepList.value[selectedStep.value].bookmark;
       showBookmarkDialog.value = true;
@@ -329,23 +362,35 @@ export default defineComponent({
       let wkStep = stepManager.getActiveStep();
 
       while (wkStep != undefined) {
-        if (wkStep.rotateStatus == "bef") {
-          wasm.value.rotate(wkStep.axis, wkStep.layer, wkStep.dir);
+        console.log(wkStep);
+        await rotateOneStep(wkStep);
+        wkStep = stepManager.getActiveStep();
+      }
+    };
+    const rotateOneStep = async (step: RotateStep) => {
+      let cntCheck = 0;
+      while (cntCheck < 100) {
+        console.log(step.rotateStatus);
+        if (step.rotateStatus == "bef") {
+          wasm.value.rotate(step.axis, step.layer, step.dir);
           setRotateStatus("doing");
-        } else if (wkStep.rotateStatus == "doing") {
+          rotateStepListElem.value.$forceUpdate(); // workaround
+        } else if (step.rotateStatus == "doing") {
           if (on_animation() == 1) {
             await wait(waitMSec.value);
+            cntCheck++;
           } else {
             setRotateStatus("done");
           }
         } else {
-          wkStep = stepManager.getActiveStep();
+          break;
         }
       }
-    }
+      rotateStepListElem.value.$forceUpdate(); // workaround
+    };
     const setRotateStatus = (status: RotateStatus) => {
       stepManager.setRotateStatus(status);
-    }
+    };
     //
     const getStepStr = (step: RotateStep): string => {
       return stepManager.getStepStr(step);
@@ -356,15 +401,22 @@ export default defineComponent({
       }
       return step.bookmark;
     };
+    const getStepClass = (step: RotateStep): string => {
+      let retclass = "";
+      retclass += (" rotate-" + step.rotateStatus);
+      return retclass;
+    };
     const isActiveItem = (menuitem: any): boolean => {
       if (menuitem.id == "import" || menuitem.id == "export") {
         return true;
       }
-      return selectedStep.value >= 0;
+      const selectedRotateItem = rotateStepListElem.value.$el.getElementsByClassName(activeRotateStepClass.value);
+      const hasSelectedRotateItem = selectedRotateItem != undefined && selectedRotateItem.length > 0;
+      return selectedStep.value >= 0 && hasSelectedRotateItem;
     };
     //
     const onResize = () => {
-      roteteStepListHeight.value = document.documentElement.clientHeight - 130;
+      roteteStepListHeight.value = document.documentElement.clientHeight - 150;
     }
     onMounted(() => {
       window.addEventListener('resize', onResize);
@@ -375,12 +427,15 @@ export default defineComponent({
     });
     //
     return {
+      // ref
       wasm,
       appBar,
-      menuitems,
       historyMenuButton,
       rotateStepListElem,
       roteteStepListHeight,
+      // const
+      menuitems,
+      activeRotateStepClass,
       //
       fileImportDialog,
       showConfigMenu,
@@ -389,7 +444,7 @@ export default defineComponent({
       showBookmarkDialog,
       importTagetfile,
       editingBookmark,
-      //
+      // event action
       onControlAction,
       onRotateAction,
       onMenuClick,
@@ -397,7 +452,10 @@ export default defineComponent({
       onExportExecute,
       onRoteteStepClick,
       onBookmarkChanged,
-      //
+      onPlaybackOneStep,
+      onPlayforwardOneStep,
+      // conmuted
+      getStepClass,
       getStepStr,
       getStepSubstr,
       isActiveItem
@@ -424,4 +482,11 @@ export default defineComponent({
   margin-left: 10px;
   margin-right: 30px;
 }
+.rotate-bef {
+  color: lightgray;
+}
+.rotate-doing {
+  color: red;
+}
+
 </style>
