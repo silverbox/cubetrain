@@ -4,3 +4,7 @@
 
 /nginx/vuedist
 /nginx/wasm
+
+/amazon-cloudfront-secure-static-site
+
+/deploywork

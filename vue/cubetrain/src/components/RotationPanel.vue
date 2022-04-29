@@ -2,11 +2,22 @@
   <v-container class="grey lighten-5">
     <v-row>
       <v-col md="6" offset-md="3">
-        <v-btn :color="keyOperationColor" block @keypress="onKeyOperation" @focus="keyOperation = true" @blur="keyOperation = false">
+        <v-btn :color="keyOperationColor" block @keypress="onKeyOperation" @focus="keyOperation = true" @blur="keyOperation = false" title="">
           キーボード操作
           <v-icon v-if="keyOperation">mdi-play</v-icon>
           <v-icon v-else>mdi-pause</v-icon>
         </v-btn>
+      </v-col>
+      <v-col md="1" class="item-center">
+        <v-tooltip anchor="bottom">
+          <template v-slot:activator="{ props }">
+            <v-icon class="hint-icon" v-bind="props">mdi-information-outline</v-icon>
+          </template>
+          <div>一度押すとキーボード操作モードになります。</div>
+          <div>他のボタンを押したりするまで有効です。</div>
+          <div>それぞれの記号をタイプする事で回転します。</div>
+          <div>Shiftキー同時押しで'付きになります。</div>
+        </v-tooltip>
       </v-col>
     </v-row>
     <v-row style="height: 20px;">
@@ -253,5 +264,8 @@ export default defineComponent({
 .item-center {
   justify-content:center;
   text-align:center;
+}
+.hint-icon {
+  margin-top: 6px;
 }
 </style>

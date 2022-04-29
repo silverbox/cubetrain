@@ -37,3 +37,20 @@ export default defineComponent({
   },
 })
 </script>
+<style>
+.wasm-container {
+  display: flex;
+}
+.wasm-sub-container {
+  position: relative;
+}
+.wasm-canvas {
+  margin: 5px;
+}
+.wasm-label {
+  position: absolute;
+  top: 10px;
+  left: 15px;
+  font-size: 24px;
+}
+</style>
