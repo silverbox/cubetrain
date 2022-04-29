@@ -28,9 +28,6 @@ Parameters:
   DomainName:
     Description: The part of a website address after your SubDomain - e.g. example.com
     Type: String
-  # HostedZoneId:
-  #   Description: HostedZoneId for the domain e.g. Z23ABC4XYZL05B
-  #   Type: String
   CreateApex:
     Description: Create an Apex Alias in CloudFront distribution - yes/no
     Type: String
@@ -53,19 +50,6 @@ Resources:
       Tags:
         - Key: Solution
           Value: ACFS3
-
-  # AcmCertificateStack:
-  #   Type: AWS::CloudFormation::Stack
-  #   Properties:
-  #     TemplateURL: ./acm-certificate.yaml
-  #     Parameters:
-  #       SubDomain: !Ref SubDomain
-  #       DomainName: !Ref DomainName
-  #       CreateApex: !Ref CreateApex
-  #       HostedZoneId: !Ref HostedZoneId
-  #     Tags:
-  #       - Key: Solution
-  #         Value: ACFS3
 
   CloudFrontStack:
     Type: AWS::CloudFormation::Stack
