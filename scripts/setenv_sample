@@ -1,0 +1,8 @@
+APP_RESOURCE_BUCKET_NAME=cubetrain-hogehoge-bucket
+
+CFN_ACM_STACK_NAME=cubutrain-acm-stack
+CFN_MAIN_STACK_NAME=cubutrain-main-stack
+CFN_TEMP_BUCKET_NAME=my-hogehoge-bucket
+CFN_DOMAIN_NAME=cubetrain.silverbox.tk
+CFN_SUB_DOMAIN=www
+CFN_HOSTEDZONEID=HOGEHOGEFUGAFUGA

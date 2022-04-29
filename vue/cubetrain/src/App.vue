@@ -10,7 +10,7 @@
     >
       <v-app-bar-nav-icon @click="showConfigMenu = !showConfigMenu"></v-app-bar-nav-icon>
 
-      <v-toolbar-title>ルービック・キューブ訓練アプリ</v-toolbar-title>
+      <v-toolbar-title>{{ appTitle }}</v-toolbar-title>
 
       <v-spacer></v-spacer>
 
@@ -35,12 +35,22 @@
       <v-list density="compact">
         <v-list-subheader>操作履歴</v-list-subheader>
         <v-list-subheader>
-          <v-btn width="30" flat @click="onPlaybackOneStep">
-            <v-icon>mdi-chevron-left</v-icon>
-          </v-btn>
-          <v-btn width="30" flat @click="onPlayforwardOneStep">
-            <v-icon>mdi-chevron-right</v-icon>
-          </v-btn>
+          <v-tooltip anchor="start">
+            <template v-slot:activator="{ props }">
+              <v-btn v-bind="props" width="30" flat @click="onPlaybackOneStep">
+                <v-icon>mdi-chevron-left</v-icon>
+              </v-btn>
+            </template>
+            <div>１ステップ戻します</div>
+          </v-tooltip>
+          <v-tooltip anchor="start">
+            <template v-slot:activator="{ props }">
+              <v-btn v-bind="props" width="30" flat @click="onPlayforwardOneStep">
+                <v-icon>mdi-chevron-right</v-icon>
+              </v-btn>
+            </template>
+            <div>１ステップ進めます</div>
+          </v-tooltip>
           <v-btn
             flat
             ref="historyMenuButton"
@@ -175,6 +185,7 @@ export default defineComponent({
     const historyMenuButton = ref();
     const rotateStepListElem = ref();
     // const
+    const appTitle = ref<string>("ルービック・キューブ訓練アプリ");
     const menuitems = ref([
       {id: "export", caption: "出力"},
       {id: "import", caption: "取込"},
@@ -362,7 +373,6 @@ export default defineComponent({
       let wkStep = stepManager.getActiveStep();
 
       while (wkStep != undefined) {
-        console.log(wkStep);
         await rotateOneStep(wkStep);
         wkStep = stepManager.getActiveStep();
       }
@@ -370,7 +380,6 @@ export default defineComponent({
     const rotateOneStep = async (step: RotateStep) => {
       let cntCheck = 0;
       while (cntCheck < 100) {
-        console.log(step.rotateStatus);
         if (step.rotateStatus == "bef") {
           wasm.value.rotate(step.axis, step.layer, step.dir);
           setRotateStatus("doing");
@@ -434,6 +443,7 @@ export default defineComponent({
       rotateStepListElem,
       roteteStepListHeight,
       // const
+      appTitle,
       menuitems,
       activeRotateStepClass,
       //
