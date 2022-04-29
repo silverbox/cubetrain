@@ -35,22 +35,12 @@
       <v-list density="compact">
         <v-list-subheader>操作履歴</v-list-subheader>
         <v-list-subheader>
-          <v-tooltip anchor="start">
-            <template v-slot:activator="{ props }">
-              <v-btn v-bind="props" width="30" flat @click="onPlaybackOneStep">
-                <v-icon>mdi-chevron-left</v-icon>
-              </v-btn>
-            </template>
-            <div>１ステップ戻します</div>
-          </v-tooltip>
-          <v-tooltip anchor="start">
-            <template v-slot:activator="{ props }">
-              <v-btn v-bind="props" width="30" flat @click="onPlayforwardOneStep">
-                <v-icon>mdi-chevron-right</v-icon>
-              </v-btn>
-            </template>
-            <div>１ステップ進めます</div>
-          </v-tooltip>
+          <v-btn width="30" flat @click="onPlaybackOneStep">
+            <v-icon>mdi-chevron-left</v-icon>
+          </v-btn>
+          <v-btn width="30" flat @click="onPlayforwardOneStep">
+            <v-icon>mdi-chevron-right</v-icon>
+          </v-btn>
           <v-btn
             flat
             ref="historyMenuButton"
@@ -372,6 +362,7 @@ export default defineComponent({
       let wkStep = stepManager.getActiveStep();
 
       while (wkStep != undefined) {
+        console.log(wkStep);
         await rotateOneStep(wkStep);
         wkStep = stepManager.getActiveStep();
       }
@@ -379,6 +370,7 @@ export default defineComponent({
     const rotateOneStep = async (step: RotateStep) => {
       let cntCheck = 0;
       while (cntCheck < 100) {
+        console.log(step.rotateStatus);
         if (step.rotateStatus == "bef") {
           wasm.value.rotate(step.axis, step.layer, step.dir);
           setRotateStatus("doing");

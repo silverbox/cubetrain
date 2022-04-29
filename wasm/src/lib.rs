@@ -163,45 +163,32 @@ fn draw(model: &Model, on_animation: bool) {
 // `view` describes what to display.
 fn view(model: &Model) -> Node<Msg> {
     div![
-        C!["wasm-container"],
+        C!["counter"],
+        style! {St::Display => "flex"},
         input![ // workaround for bug?
             style! {St::Width => px(0)},
             input_ev(Ev::Input, Msg::AnimationSpeedChanged),
         ],
-        div![
-            C!["wasm-sub-container"],
-            label![
-                C!["wasm-label"],
-                "正面ビュー"
+        label!["表"],
+        canvas![
+            el_ref(&model.canvas),
+            attrs![
+                At::Width => px(CANVAS_W),
+                At::Height => px(CANVAS_H),
             ],
-            canvas![
-                C!["wasm-canvas"],
-                el_ref(&model.canvas),
-                attrs![
-                    At::Width => px(CANVAS_W),
-                    At::Height => px(CANVAS_H),
-                ],
-                style![
-                    St::Border => "1px solid black",
-                ],
+            style![
+                St::Border => "1px solid black",
             ],
         ],
-        div![
-            C!["wasm-sub-container"],
-            label![
-                C!["wasm-label"],
-                "背面ビュー"
+        label!["裏"],
+        canvas![
+            el_ref(&model.subcanvas),
+            attrs![
+                At::Width => px(CANVAS_W),
+                At::Height => px(CANVAS_H),
             ],
-            canvas![
-                C!["wasm-canvas"],
-                el_ref(&model.subcanvas),
-                attrs![
-                    At::Width => px(CANVAS_W),
-                    At::Height => px(CANVAS_H),
-                ],
-                style![
-                    St::Border => "1px solid black",
-                ],
+            style![
+                St::Border => "1px solid black",
             ],
         ],
     ]
