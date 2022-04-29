@@ -10,7 +10,7 @@
     >
       <v-app-bar-nav-icon @click="showConfigMenu = !showConfigMenu"></v-app-bar-nav-icon>
 
-      <v-toolbar-title>ルービック・キューブ訓練アプリ</v-toolbar-title>
+      <v-toolbar-title>{{ appTitle }}</v-toolbar-title>
 
       <v-spacer></v-spacer>
 
@@ -185,6 +185,7 @@ export default defineComponent({
     const historyMenuButton = ref();
     const rotateStepListElem = ref();
     // const
+    const appTitle = ref<string>("ルービック・キューブ訓練アプリ");
     const menuitems = ref([
       {id: "export", caption: "出力"},
       {id: "import", caption: "取込"},
@@ -442,6 +443,7 @@ export default defineComponent({
       rotateStepListElem,
       roteteStepListHeight,
       // const
+      appTitle,
       menuitems,
       activeRotateStepClass,
       //
