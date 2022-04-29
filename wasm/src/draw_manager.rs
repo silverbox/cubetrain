@@ -18,7 +18,7 @@ use super::cubic_calc::viewing_transform;
 pub const CANVAS_W: f32 = 400.0;
 pub const CANVAS_H: f32 = 400.0;
 const OFFSET_X: f32 = CANVAS_W / 2.0;
-const OFFSET_Y: f32 = CANVAS_H / 2.0 + 20.0;
+const OFFSET_Y: f32 = CANVAS_H / 2.0;
 
 const X_AXIS_LINE_S: NormPoint = NormPoint {x:  170.0, y: -150.0, z: -150.0, w: 1.0};
 const X_AXIS_LINE_E: NormPoint = NormPoint {x:  300.0, y: -150.0, z: -150.0, w: 1.0};

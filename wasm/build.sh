@@ -1,7 +1,3 @@
-#!/bin/bash
-set -euxo pipefail
-cd "$(dirname "$0")"
-
 VUE_OUTPUT_PATH='../vue/cubetrain/src/wasm'
 NGINX_OUTPUT_PATH='../nginx/wasm'
 
