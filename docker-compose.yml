@@ -25,3 +25,12 @@ services:
       - ./vue:/vue
     container_name: cubetrain-vuefront
     tty: true
+
+  # vuetest:
+  #   build:
+  #     context: ./vuetest
+  #     dockerfile: Dockerfile-vue
+  #   volumes:
+  #     - ./vuetest:/vue
+  #   container_name: cubetrain-vuetest
+  #   tty: true
