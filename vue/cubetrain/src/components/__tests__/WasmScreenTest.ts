@@ -6,13 +6,15 @@ const MessageComponent = {
   props: ['msg']
 }
 
-test('displays message', () => {
-  const wrapper = mount(MessageComponent, {
-    props: {
-      msg: 'Hello world'
-    }
+describe('HelloWorld.vue', () => {
+  it('renders props.msg when passed', () => {
+    const wrapper = mount(MessageComponent, {
+      props: {
+        msg: 'Hello world'
+      }
+    })
+  
+    // Assert the rendered text of the component
+    expect(wrapper.text()).toContain('Hello world')
   })
-
-  // Assert the rendered text of the component
-  expect(wrapper.text()).toContain('Hello world')
 })
