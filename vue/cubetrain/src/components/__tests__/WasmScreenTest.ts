@@ -1,20 +1,20 @@
-import { mount } from '@vue/test-utils'
+// import { mount } from '@vue/test-utils'
+import { shallowMount } from '@vue/test-utils'
+import WasmScreen from '@/components/WasmScreen.vue'
+import flushPromises from 'flush-promises'
 
-// The component to test
-const MessageComponent = {
-  template: '<p>{{ msg }}</p>',
-  props: ['msg']
-}
-
-describe('HelloWorld.vue', () => {
-  it('renders props.msg when passed', () => {
-    const wrapper = mount(MessageComponent, {
+describe('WasmScreen.vue', () => {
+  it('success to connect with wasm module', async () => {
+    const wait = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+    const wrapper = shallowMount(WasmScreen, {
       props: {
-        msg: 'Hello world'
+        id: 'unittest-id'
       }
     })
-  
-    // Assert the rendered text of the component
-    expect(wrapper.text()).toContain('Hello world')
+    await flushPromises();
+    await wait(2000);
+
+    expect(wrapper).toBeDefined();
+    expect(wrapper.vm.onWasmAnimation()).toBe(0);
   })
 })
