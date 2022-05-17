@@ -3,7 +3,7 @@
 </template>
 <script lang="ts">
 import { defineComponent, toRefs, onMounted, ref } from 'vue';
-import init, { start } from '@/wasm/package.js';
+import init, { start, on_animation } from '@/wasm/package.js';
 
 export default defineComponent({
   name: "WasmScreen",
@@ -19,6 +19,9 @@ export default defineComponent({
       const unitedstr = `${axis} ${layer} ${dir}`;
       interfaceRotate.value(unitedstr);
     };
+    const onWasmAnimation = () => {
+      return on_animation();
+    };
     const onMountedOperation = () => {
       init('/wasm/package_bg.wasm').then(() => {
         const [set_config, rotate] = start(id.value);
@@ -29,7 +32,8 @@ export default defineComponent({
     onMounted(onMountedOperation);
     return {
       setConfig,
-      rotate
+      rotate,
+      onWasmAnimation
     }
   },
   props: {

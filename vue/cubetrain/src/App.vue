@@ -35,22 +35,14 @@
       <v-list density="compact">
         <v-list-subheader>操作履歴</v-list-subheader>
         <v-list-subheader>
-          <v-tooltip anchor="start">
-            <template v-slot:activator="{ props }">
-              <v-btn v-bind="props" width="30" flat @click="onPlaybackOneStep">
-                <v-icon>mdi-chevron-left</v-icon>
-              </v-btn>
-            </template>
-            <div>１ステップ戻します</div>
-          </v-tooltip>
-          <v-tooltip anchor="start">
-            <template v-slot:activator="{ props }">
-              <v-btn v-bind="props" width="30" flat @click="onPlayforwardOneStep">
-                <v-icon>mdi-chevron-right</v-icon>
-              </v-btn>
-            </template>
-            <div>１ステップ進めます</div>
-          </v-tooltip>
+          <v-btn v-bind="props" width="30" flat @click="onPlaybackOneStep" class="app_playbackonestep">
+            <v-icon>mdi-chevron-left</v-icon>
+            <v-tooltip activator="parent" anchor="start"><div>１ステップ戻します</div></v-tooltip>
+          </v-btn>
+          <v-btn v-bind="props" width="30" flat @click="onPlayforwardOneStep" class="app_playforwardonestep">
+            <v-icon>mdi-chevron-right</v-icon>
+            <v-tooltip activator="parent" anchor="start"><div>１ステップ進めます</div></v-tooltip>
+          </v-btn>
           <v-btn
             flat
             ref="historyMenuButton"
@@ -169,8 +161,6 @@ import { RotateStep, RotateStepManager,  } from '@/class/rotateStepManager'
 import { Axis, Layer, Dir, RotateStatus, cubeutils } from '@/class/cubeutils';
 const { getRotateInfoFromStr, getRandomRotateInfo } = cubeutils();
 
-import { on_animation } from '@/wasm/package.js';
-
 type stepMenuType = "import" | "export" | "revert" | "replay" | "bookmark";
 
 export default defineComponent({
@@ -231,15 +221,15 @@ export default defineComponent({
       stepManager.clearStepList();
       selectedStep.value = -1;
       rotateStepList.value = stepManager.getCurrentStepList(); // workaround
-      rotateStepListElem.value.$forceUpdate(); // workaround
+      forceUpdate(); // workaround
     };
     const onRotateAction = (axis: Axis, layer: Layer, dir: Dir) => {
       if (wasm.value != null) {
         stepManager.addStep(axis, layer, dir, "");
         // rotateStepList.value = stepManager.getCurrentStepList(); // workaround
-        rotateStepListElem.value.$forceUpdate(); // workaround
+        forceUpdate(); // workaround
       }
-      if (on_animation() == 0) {
+      if (onAnimation() == 0) {
         startRotate();
       }
     };
@@ -252,7 +242,7 @@ export default defineComponent({
         stepManager.addStep(axis, layer, dir, bookmark);
       }
       startRotate();
-      rotateStepListElem.value.$forceUpdate(); // workaround
+      forceUpdate(); // workaround
     };
     const onRoteteStepClick = (event: any, idx: number) => {
       selectedStep.value = idx;
@@ -275,7 +265,7 @@ export default defineComponent({
           onEditBookmark();
           break;
       }
-      historyMenuButton.value.$el.click(); // TODO workaround for close-on-click
+      forceUpdate(); // TODO workaround for close-on-click
     };
     const onImportExecute = () => {
       fileImportDialog.value = false;
@@ -297,7 +287,7 @@ export default defineComponent({
           stepManager.addStep(axis, layer, dir, bookmark);
         }
         startRotate();
-        rotateStepListElem.value.$forceUpdate(); // workaround
+        forceUpdate(); // workaround
       };
     };
     const onExportExecute = () => {
@@ -312,7 +302,7 @@ export default defineComponent({
     const onRevertStep = async (stepIndex: number) => {
       let wkIdx = rotateStepList.value.length - 1;
       while (wkIdx > stepIndex) {
-        if (on_animation() == 1) {
+        if (onAnimation() == 1) {
           await wait(waitMSec.value);
           continue;
         } else {
@@ -320,7 +310,7 @@ export default defineComponent({
           if (wkStep == undefined) {
             continue;
           }
-          rotateStepListElem.value.$forceUpdate(); // workaround
+          forceUpdate(); // workaround
           wasm.value.rotate(wkStep.axis, wkStep.layer, wkStep.dir);
           wkIdx--;
         }
@@ -339,7 +329,7 @@ export default defineComponent({
       startRotate();
     };
     const onPlaybackOneStep = async () => {
-      if (on_animation() == 1) {
+      if (onAnimation() == 1) {
         return;
       }
       const counterStep = stepManager.revertOneRotateStep();
@@ -347,10 +337,10 @@ export default defineComponent({
         return;
       }
       wasm.value.rotate(counterStep.axis, counterStep.layer, counterStep.dir);
-      rotateStepListElem.value.$forceUpdate(); // workaround
+      forceUpdate(); // workaround
     };
     const onPlayforwardOneStep = async () => {
-      if (on_animation() == 1) {
+      if (onAnimation() == 1) {
         return;
       }
       let wkStep = stepManager.getActiveStep();
@@ -366,7 +356,7 @@ export default defineComponent({
     const onBookmarkChanged = () => {
       showBookmarkDialog.value = false;
       rotateStepList.value[selectedStep.value].bookmark = editingBookmark.value;
-      rotateStepListElem.value.$forceUpdate(); // workaround
+      forceUpdate(); // workaround
     };
     //
     const startRotate = async () => {
@@ -383,9 +373,9 @@ export default defineComponent({
         if (step.rotateStatus == "bef") {
           wasm.value.rotate(step.axis, step.layer, step.dir);
           setRotateStatus("doing");
-          rotateStepListElem.value.$forceUpdate(); // workaround
+          forceUpdate(); // workaround
         } else if (step.rotateStatus == "doing") {
-          if (on_animation() == 1) {
+          if (onAnimation() == 1) {
             await wait(waitMSec.value);
             cntCheck++;
           } else {
@@ -395,7 +385,7 @@ export default defineComponent({
           break;
         }
       }
-      rotateStepListElem.value.$forceUpdate(); // workaround
+      forceUpdate(); // workaround
     };
     const setRotateStatus = (status: RotateStatus) => {
       stepManager.setRotateStatus(status);
@@ -419,14 +409,33 @@ export default defineComponent({
       if (menuitem.id == "import" || menuitem.id == "export") {
         return true;
       }
-      const selectedRotateItem = rotateStepListElem.value.$el.getElementsByClassName(activeRotateStepClass.value);
-      const hasSelectedRotateItem = selectedRotateItem != undefined && selectedRotateItem.length > 0;
-      return selectedStep.value >= 0 && hasSelectedRotateItem;
+      if (rotateStepListElem.value && rotateStepListElem.value.$el) {
+        const selectedRotateItem = rotateStepListElem.value.$el.getElementsByClassName(activeRotateStepClass.value);
+        const hasSelectedRotateItem = selectedRotateItem != undefined && selectedRotateItem.length > 0;
+        return selectedStep.value >= 0 && hasSelectedRotateItem;
+      } else {
+        return false;
+      }
     };
+    const forceUpdate = () => {
+      if (rotateStepListElem.value.$forceUpdate) {
+        rotateStepListElem.value.$forceUpdate(); // workaround
+      }
+    }
     //
     const onResize = () => {
       roteteStepListHeight.value = document.documentElement.clientHeight - 150;
     }
+    // for tet
+    const waitForAnimation = async () => {
+      while (onAnimation() == 1) {
+        await wait(waitMSec.value);
+      }
+    }
+    const onAnimation = () => {
+      return wasm.value.onWasmAnimation();
+    }
+    //
     onMounted(() => {
       window.addEventListener('resize', onResize);
       onResize();
@@ -468,7 +477,9 @@ export default defineComponent({
       getStepClass,
       getStepStr,
       getStepSubstr,
-      isActiveItem
+      isActiveItem,
+      //
+      waitForAnimation
     };
   },
   props: {

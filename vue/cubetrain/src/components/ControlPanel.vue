@@ -5,12 +5,12 @@
         <v-label class="input-label">回転速度</v-label>
       </v-col>
       <v-col md="4">
-        <input v-model="speed" class="control-input" type="number">
+        <input v-model="speed" class="controlpanel_speedval control-input" type="number">
       </v-col>
     </v-row>
     <v-row>
       <v-col md="8" offset-md="2" class="item-center">
-        <v-btn color="normal" block @click="controlAction('speed')">
+        <v-btn color="normal" block @click="controlAction('speed')" class="controlpanel_speed">
           <v-icon>mdi-refresh</v-icon>
         </v-btn>
       </v-col>
@@ -20,12 +20,12 @@
         <v-label class="input-label">スクランブル</v-label>
       </v-col>
       <v-col md="4">
-        <input v-model="scramblestep" class="control-input" type="number">
+        <input v-model="scramblestep" class="controlpanel_scramblestep control-input" type="number">
       </v-col>
     </v-row>
     <v-row>
       <v-col md="8" offset-md="2" class="item-center">
-        <v-btn color="normal" block @click="controlAction('scramble')">
+        <v-btn color="normal" block @click="controlAction('scramble')" class="controlpanel_scramble">
           <v-icon>mdi-shuffle</v-icon>
         </v-btn>
       </v-col>
@@ -78,7 +78,7 @@ export default defineComponent({
   props: {
     defspeed: {type: Number, required: true},
     defscramblestep: {type: Number, required: true},
-  },
+  }
 })
 </script>
 <style scoped>
