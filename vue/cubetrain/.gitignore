@@ -24,3 +24,4 @@ pnpm-debug.log*
 
 /src/wasm
 /src/assets/wasm
+/**/package_bg.wasm
