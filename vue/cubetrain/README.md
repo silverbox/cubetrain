@@ -1,4 +1,4 @@
-# jesttest2
+# cubetrain
 
 ## Project setup
 ```
@@ -32,3 +32,10 @@ yarn lint
 
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
+
+
+# 参考にさせて頂いたページ
+
+## 静的リソース処理
+
+https://qiita.com/skmtko/items/a83f836b48f24309916d

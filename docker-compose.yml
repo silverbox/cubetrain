@@ -13,7 +13,7 @@ services:
       - ./nginx/vuedist:/vuedist
     depends_on:
       - vuefront
-      - vuetest
+      # - vuetest
     container_name: cubetrain-nginx
 
   vuefront:
