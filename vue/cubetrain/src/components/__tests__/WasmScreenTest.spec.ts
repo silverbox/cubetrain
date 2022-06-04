@@ -2,9 +2,10 @@ import { shallowMount } from '@vue/test-utils'
 import WasmScreen from '@/components/WasmScreen.vue'
 
 jest.mock('@/wasm/package.js');
-import init, { on_animation } from '@/wasm/package.js';
+import init, { start, on_animation } from '@/wasm/package.js';
 
 (init as any).mockResolvedValue();
+(start as any).mockImplementation((id: string) => [jest.fn(), jest.fn()]);
 (on_animation as any).mockImplementation(() => 0);
 
 describe('WasmScreen.vue', () => {
