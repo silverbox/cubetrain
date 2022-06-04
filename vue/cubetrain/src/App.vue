@@ -35,17 +35,18 @@
       <v-list density="compact">
         <v-list-subheader>操作履歴</v-list-subheader>
         <v-list-subheader>
-          <v-btn v-bind="props" width="30" flat @click="onPlaybackOneStep" class="app_playbackonestep">
+          <v-btn width="30" flat @click="onPlaybackOneStep" class="app_playbackonestep">
             <v-icon>mdi-chevron-left</v-icon>
             <v-tooltip activator="parent" anchor="start"><div>１ステップ戻します</div></v-tooltip>
           </v-btn>
-          <v-btn v-bind="props" width="30" flat @click="onPlayforwardOneStep" class="app_playforwardonestep">
+          <v-btn width="30" flat @click="onPlayforwardOneStep" class="app_playforwardonestep">
             <v-icon>mdi-chevron-right</v-icon>
             <v-tooltip activator="parent" anchor="start"><div>１ステップ進めます</div></v-tooltip>
           </v-btn>
           <v-btn
             flat
             ref="historyMenuButton"
+            class="app_history-menu-btn"
           >
             <v-icon>mdi-dots-vertical</v-icon>
             <v-menu
@@ -60,6 +61,7 @@
                   :key="menu.id"
                   :disabled="!isActiveItem(menu)"
                   @click="onMenuClick(menu.id)"
+                  :class="'app_history-menu-item-' + menu.id"
                 >
                   <v-list-item-title>{{ menu.caption }}</v-list-item-title>
                 </v-list-item>
@@ -68,7 +70,7 @@
           </v-btn>
         </v-list-subheader>
       </v-list>
-      <v-list density="compact" class="history-list" ref="rotateStepListElem" :height="roteteStepListHeight" three-line>
+      <v-list density="compact" class="app_history-list" ref="rotateStepListElem" :height="roteteStepListHeight" three-line>
         <v-list-item
           v-for="(step, i) in rotateStepList"
           :key="i"
@@ -307,11 +309,10 @@ export default defineComponent({
           continue;
         } else {
           const wkStep = stepManager.revertStep();
-          if (wkStep == undefined) {
-            continue;
+          if (wkStep != undefined) {
+            forceUpdate(); // workaround
+            wasm.value.rotate(wkStep.axis, wkStep.layer, wkStep.dir);
           }
-          forceUpdate(); // workaround
-          wasm.value.rotate(wkStep.axis, wkStep.layer, wkStep.dir);
           wkIdx--;
         }
       }
@@ -401,7 +402,7 @@ export default defineComponent({
       return step.bookmark;
     };
     const getStepClass = (step: RotateStep): string => {
-      let retclass = "";
+      let retclass = "app_history-item";
       retclass += (" rotate-" + step.rotateStatus);
       return retclass;
     };

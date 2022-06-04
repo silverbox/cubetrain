@@ -24,9 +24,9 @@ export default defineComponent({
     };
     const onMountedOperation = () => {
       init('/wasm/package_bg.wasm').then(() => {
-        // const [set_config, rotate] = start(id.value);
-        // interfaceSetConfig.value = set_config;
-        // interfaceRotate.value = rotate;
+        const [set_config, rotate] = start(id.value);
+        interfaceSetConfig.value = set_config;
+        interfaceRotate.value = rotate;
       });
     }
     onMounted(onMountedOperation);
