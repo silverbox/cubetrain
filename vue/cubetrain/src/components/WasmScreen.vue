@@ -1,13 +1,21 @@
 <template>
-  <div :id="id"></div>
+  <div>
+    <div :id="id"></div>
+    <div class="wasm-screen_floatingpnl">
+      <v-btn block @click="onButtonOperation('z', 'neg', 'n')" class="wasm-screen_floatbtn" :style="getPosStyle('b-r')">
+        B'
+      </v-btn>
+    </div>
+  </div>
 </template>
 <script lang="ts">
 import { defineComponent, toRefs, onMounted, ref } from 'vue';
+import { RotateInfo, Axis, Layer, Dir } from '@/class/cubeutils';
 import init, { start, on_animation } from '@/wasm/package.js';
 
 export default defineComponent({
   name: "WasmScreen",
-  setup(props){
+  setup(props: any, context: any){
     const { id } = toRefs(props)
     const interfaceSetConfig = ref<any>(() => {});
     const interfaceRotate = ref<any>(() => {});
@@ -18,6 +26,22 @@ export default defineComponent({
     const rotate = (axis: string, layer: string, dir: string) => {
       const unitedstr = `${axis} ${layer} ${dir}`;
       interfaceRotate.value(unitedstr);
+    };
+    const rotateAction = (rotateInfo: RotateInfo) => {
+      const { axis, layer, dir } = rotateInfo;
+      context.emit("rotateAction", axis, layer, dir);
+    };
+    const getPosStyle = (key: string) => {
+      console.log(key)
+      const left = 100;
+      const top = 50;
+      return {
+        left: left + 'px',
+        top: top + 'px'
+      }
+    };
+    const onButtonOperation = (axis: Axis, layer: Layer, dir: Dir) => {
+      rotateAction({ axis: axis, layer: layer, dir: dir });
     };
     const onWasmAnimation = () => {
       return on_animation();
@@ -33,6 +57,9 @@ export default defineComponent({
     return {
       setConfig,
       rotate,
+      rotateAction,
+      getPosStyle,
+      onButtonOperation,
       onWasmAnimation
     }
   },
@@ -43,6 +70,7 @@ export default defineComponent({
 </script>
 <style>
 .wasm-container {
+  position: absolute;
   display: flex;
 }
 .wasm-sub-container {
@@ -56,5 +84,11 @@ export default defineComponent({
   top: 10px;
   left: 15px;
   font-size: 24px;
+}
+.wasm-screen_floatingpnl{
+  position: absolute;
+}
+.wasm-screen_floatbtn{
+  position: absolute;
 }
 </style>

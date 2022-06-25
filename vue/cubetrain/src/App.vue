@@ -106,6 +106,7 @@
               <WasmScreen
                 id="wasmelemid"
                 ref="wasm"
+                @rotateAction="onRotateAction"
               />
             </v-col>
           </v-row>
