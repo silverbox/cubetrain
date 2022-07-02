@@ -143,7 +143,7 @@ export default defineComponent({
         return;
       }
       const currentIdx = getCurrentPosIdx(e.offsetX, e.offsetY);
-      console.log(`x=${e.offsetX}, Y=${e.offsetY}, currentIdx=${currentIdx}`);
+      // console.log(`x=${e.offsetX}, Y=${e.offsetY}, currentIdx=${currentIdx}`);
       if (infoIdx.value != currentIdx) {
         if (currentIdx >= 0) {
           const wkInfo = SURFACE_INFO_LIST_ORG[currentIdx];
