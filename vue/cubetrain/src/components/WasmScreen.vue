@@ -3,12 +3,12 @@
     <div :id="id"></div>
     <div class="wasm-screen_floatingpnl" @mousemove="onMouseMove" ref="floatingPanel">
       <div class="wasm-screen_floating_btnset" :style="btnsetPosStyle">
-        <v-icon class="wasm-screen_arrow_u wasm-screen_floatbtn" @click="onFloatingButton('u')">mdi-arrow-up-bold</v-icon>
-        <v-icon class="wasm-screen_arrow_d wasm-screen_floatbtn" @click="onFloatingButton('d')">mdi-arrow-up-bold</v-icon>
-        <v-icon class="wasm-screen_arrow_ru wasm-screen_floatbtn" @click="onFloatingButton('ru')">mdi-arrow-up-bold</v-icon>
-        <v-icon class="wasm-screen_arrow_rd wasm-screen_floatbtn" @click="onFloatingButton('rd')">mdi-arrow-up-bold</v-icon>
-        <v-icon class="wasm-screen_arrow_lu wasm-screen_floatbtn" @click="onFloatingButton('lu')">mdi-arrow-up-bold</v-icon>
-        <v-icon class="wasm-screen_arrow_ld wasm-screen_floatbtn" @click="onFloatingButton('ld')">mdi-arrow-up-bold</v-icon>
+        <v-icon v-if="isBtnActive('y')" class="wasm-screen_arrow_u wasm-screen_floatbtn" @click="onFloatingButton('y', 'p')">mdi-arrow-up-bold</v-icon>
+        <v-icon v-if="isBtnActive('y')" class="wasm-screen_arrow_d wasm-screen_floatbtn" @click="onFloatingButton('y', 'n')">mdi-arrow-up-bold</v-icon>
+        <v-icon v-if="isBtnActive('z')" class="wasm-screen_arrow_ru wasm-screen_floatbtn" @click="onFloatingButton('z', 'n')">mdi-arrow-up-bold</v-icon>
+        <v-icon v-if="isBtnActive('x')" class="wasm-screen_arrow_rd wasm-screen_floatbtn" @click="onFloatingButton('x', 'p')">mdi-arrow-up-bold</v-icon>
+        <v-icon v-if="isBtnActive('x')" class="wasm-screen_arrow_lu wasm-screen_floatbtn" @click="onFloatingButton('x', 'n')">mdi-arrow-up-bold</v-icon>
+        <v-icon v-if="isBtnActive('z')" class="wasm-screen_arrow_ld wasm-screen_floatbtn" @click="onFloatingButton('z', 'p')">mdi-arrow-up-bold</v-icon>
       </div>
       <!-- <v-btn block @click="onButtonOperation('z', 'neg', 'n')" class="wasm-screen_floatbtn">
         B'
@@ -21,18 +21,46 @@ import { defineComponent, toRefs, onMounted, ref } from 'vue';
 import { RotateInfo, Axis, Layer, Dir } from '@/class/cubeutils';
 import init, { start, on_animation } from '@/wasm/package.js';
 
-interface SurfaceInfo{cx: number, cy: number, minx: number, maxx: number, miny: number, maxy:number, sortval: number;}
+interface SurfaceInfo{
+  cx: number, cy: number,
+  minx: number, maxx: number,
+  miny: number, maxy:number,
+  surAxis: Axis, surLayer: Layer,
+  xlayer: Layer, ylayer: Layer, zlayer: Layer,
+}
 
+// TODO get it from rust
 const SURFACE_INFO_LIST_ORG: SurfaceInfo[] = [
-  {cx: 135, cy: 165, minx: 0, maxx: 0, miny: 0, maxy: 0, sortval: 0},
-  {cx: 170, cy: 145, minx: 0, maxx: 0, miny: 0, maxy: 0, sortval: 0},
-  {cx: 205, cy: 125, minx: 0, maxx: 0, miny: 0, maxy: 0, sortval: 0},
-  {cx: 170, cy: 185, minx: 0, maxx: 0, miny: 0, maxy: 0, sortval: 0},
-  {cx: 205, cy: 165, minx: 0, maxx: 0, miny: 0, maxy: 0, sortval: 0},
-  {cx: 240, cy: 145, minx: 0, maxx: 0, miny: 0, maxy: 0, sortval: 0},
-  {cx: 205, cy: 205, minx: 0, maxx: 0, miny: 0, maxy: 0, sortval: 0},
-  {cx: 240, cy: 185, minx: 0, maxx: 0, miny: 0, maxy: 0, sortval: 0},
-  {cx: 275, cy: 165, minx: 0, maxx: 0, miny: 0, maxy: 0, sortval: 0},
+  {cx: 135, cy: 165, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "pos", xlayer: "neg", ylayer: "pos", zlayer: "pos"},
+  {cx: 170, cy: 145, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "pos", xlayer: "neg", ylayer: "pos", zlayer: "neu"},
+  {cx: 205, cy: 125, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "pos", xlayer: "neg", ylayer: "pos", zlayer: "neg"},
+  {cx: 170, cy: 185, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "pos", xlayer: "neu", ylayer: "pos", zlayer: "pos"},
+  {cx: 205, cy: 165, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "pos", xlayer: "neu", ylayer: "pos", zlayer: "neu"},
+  {cx: 240, cy: 145, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "pos", xlayer: "neu", ylayer: "pos", zlayer: "neg"},
+  {cx: 205, cy: 205, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "pos", xlayer: "pos", ylayer: "pos", zlayer: "pos"},
+  {cx: 240, cy: 185, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "pos", xlayer: "pos", ylayer: "pos", zlayer: "neu"},
+  {cx: 275, cy: 165, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "pos", xlayer: "pos", ylayer: "pos", zlayer: "neg"},
+  //
+  {cx: 115, cy: 195, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "pos", xlayer: "neg", ylayer: "pos", zlayer: "pos"},
+  {cx: 115, cy: 235, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "pos", xlayer: "neg", ylayer: "neu", zlayer: "pos"},
+  {cx: 115, cy: 275, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "pos", xlayer: "neg", ylayer: "neg", zlayer: "pos"},
+  {cx: 150, cy: 215, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "pos", xlayer: "neu", ylayer: "pos", zlayer: "pos"},
+  {cx: 150, cy: 255, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "pos", xlayer: "neu", ylayer: "neu", zlayer: "pos"},
+  {cx: 150, cy: 295, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "pos", xlayer: "neu", ylayer: "neg", zlayer: "pos"},
+  {cx: 185, cy: 235, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "pos", xlayer: "pos", ylayer: "pos", zlayer: "pos"},
+  {cx: 185, cy: 275, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "pos", xlayer: "pos", ylayer: "neu", zlayer: "pos"},
+  {cx: 185, cy: 315, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "pos", xlayer: "pos", ylayer: "neg", zlayer: "pos"},
+  //
+  {cx: 225, cy: 235, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "pos", xlayer: "pos", ylayer: "pos", zlayer: "pos"},
+  {cx: 260, cy: 215, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "pos", xlayer: "pos", ylayer: "pos", zlayer: "neu"},
+  {cx: 295, cy: 195, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "pos", xlayer: "pos", ylayer: "pos", zlayer: "neg"},
+  {cx: 225, cy: 275, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "pos", xlayer: "pos", ylayer: "neu", zlayer: "pos"},
+  {cx: 260, cy: 255, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "pos", xlayer: "pos", ylayer: "neu", zlayer: "neu"},
+  {cx: 295, cy: 235, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "pos", xlayer: "pos", ylayer: "neu", zlayer: "neg"},
+  {cx: 225, cy: 315, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "pos", xlayer: "pos", ylayer: "neg", zlayer: "pos"},
+  {cx: 260, cy: 295, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "pos", xlayer: "pos", ylayer: "neg", zlayer: "neu"},
+  {cx: 295, cy: 275, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "pos", xlayer: "pos", ylayer: "neg", zlayer: "neg"},
+  //
 ];
 // let sortedArray: {cx: number, cy: number, minx: number, maxx: number, miny: number, maxy:number, sortval: number;}[] = [];
 const AREA_OFFSET = 32;
@@ -71,15 +99,51 @@ export default defineComponent({
     const onButtonOperation = (axis: Axis, layer: Layer, dir: Dir) => {
       rotateAction({ axis: axis, layer: layer, dir: dir });
     };
-    const onFloatingButton = (btnKind: string) => {
-      console.log(btnKind);
+    const isBtnActive = (axis: Axis) => {
+      const wkInfo = SURFACE_INFO_LIST_ORG[infoIdx.value];
+      return (!!wkInfo && wkInfo.surAxis != axis);
+    };
+    const onFloatingButton = (btnAxis: Axis, btnDir: Dir) => {
+      // console.log(`axis=${btnAxis}, dir=${btnDir}`);
+      const wkInfo = SURFACE_INFO_LIST_ORG[infoIdx.value];
+      if (btnAxis == wkInfo.surAxis) return;
+      //
+      let rAxis: Axis = "x";
+      if (btnAxis == "x") {
+        if (wkInfo.surAxis == "y") {rAxis = "z"} else {rAxis = "y"}
+      } else if (btnAxis == "y") {
+        if (wkInfo.surAxis == "x") {rAxis = "z"} else {rAxis = "x"}
+      } else if (btnAxis == "z") {
+        if (wkInfo.surAxis == "y") {rAxis = "x"} else {rAxis = "y"}
+      }
+      //
+      let rLayer: Layer = "pos";
+      if (rAxis == "x") {
+        rLayer = wkInfo.xlayer;
+      } else if (rAxis == "y") {
+        rLayer = wkInfo.ylayer;
+      } else if (rAxis == "z") {
+        rLayer = wkInfo.zlayer;
+      }
+      //
+      let rDir: Dir = btnDir;
+      if (wkInfo.surAxis == "y" && rAxis == "z") {
+        rDir = btnDir == "p" ? "n" : "p";
+      } else if (wkInfo.surAxis == "z" && rAxis == "x") {
+        rDir = btnDir == "p" ? "n" : "p";
+      } else if (wkInfo.surAxis == "x" && rAxis == "y") {
+        rDir = btnDir == "p" ? "n" : "p";
+      }
+      //
+      // console.log(`rAxis=${rAxis}, rDir=${rDir}`);
+      rotateAction({ axis: rAxis, layer: rLayer, dir: rDir });
     };
     const onMouseMove = (e: MouseEvent) => {
       if (floatingPanel.value != e.target) {
         return;
       }
       const currentIdx = getCurrentPosIdx(e.offsetX, e.offsetY);
-      // console.log(`x=${e.offsetX}, Y=${e.offsetY}, currentIdx=${currentIdx}`);
+      console.log(`x=${e.offsetX}, Y=${e.offsetY}, currentIdx=${currentIdx}`);
       if (infoIdx.value != currentIdx) {
         if (currentIdx >= 0) {
           const wkInfo = SURFACE_INFO_LIST_ORG[currentIdx];
@@ -127,7 +191,6 @@ export default defineComponent({
         }
       });
       return retIdx;
-
     };
     const onMountedOperation = () => {
       init('/wasm/package_bg.wasm').then(() => {
@@ -144,10 +207,13 @@ export default defineComponent({
       rotate,
       rotateAction,
       btnsetPosStyle,
+      isBtnActive,
+      //
       onMouseMove,
       onButtonOperation,
       onFloatingButton,
       onWasmAnimation,
+      //
       floatingPanel
     }
   },
