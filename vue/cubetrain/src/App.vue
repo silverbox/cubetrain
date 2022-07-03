@@ -420,7 +420,7 @@ export default defineComponent({
       }
     };
     const forceUpdate = () => {
-      if (rotateStepListElem.value.$forceUpdate) {
+      if (showHistory.value && rotateStepListElem.value.$forceUpdate) {
         rotateStepListElem.value.$forceUpdate(); // workaround
       }
     }
