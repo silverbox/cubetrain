@@ -2,6 +2,30 @@
   <div>
     <div :id="id"></div>
     <div class="wasm-screen_floatingpnl" @mousemove="onMouseMove" ref="floatingPanel">
+      <div v-if="isAxixBtnActive('x', true)" class="wasm-screen_xaxis_btnset">
+        <v-icon class="wasm-screen_xaxis_p wasm-screen_floatbtn" @click="onAxisButton('x', 'p')">mdi-rotate-left</v-icon>
+        <v-icon class="wasm-screen_xaxis_n wasm-screen_floatbtn" @click="onAxisButton('x', 'n')">mdi-rotate-right</v-icon>
+      </div>
+      <div v-if="isAxixBtnActive('y', true)" class="wasm-screen_yaxis_btnset">
+        <v-icon class="wasm-screen_yaxis_p wasm-screen_floatbtn" @click="onAxisButton('y', 'p')">mdi-rotate-left</v-icon>
+        <v-icon class="wasm-screen_yaxis_n wasm-screen_floatbtn" @click="onAxisButton('y', 'n')">mdi-rotate-right</v-icon>
+      </div>
+      <div v-if="isAxixBtnActive('z', true)" class="wasm-screen_zaxis_btnset">
+        <v-icon class="wasm-screen_zaxis_p wasm-screen_floatbtn" @click="onAxisButton('z', 'p')">mdi-rotate-left</v-icon>
+        <v-icon class="wasm-screen_zaxis_n wasm-screen_floatbtn" @click="onAxisButton('z', 'n')">mdi-rotate-right</v-icon>
+      </div>
+      <div v-if="isAxixBtnActive('z', false)" class="wasm-screen_zraxis_btnset">
+        <v-icon class="wasm-screen_xaxis_p wasm-screen_floatbtn" @click="onAxisButton('z', 'n')">mdi-rotate-left</v-icon>
+        <v-icon class="wasm-screen_xaxis_n wasm-screen_floatbtn" @click="onAxisButton('z', 'p')">mdi-rotate-right</v-icon>
+      </div>
+      <div v-if="isAxixBtnActive('y', false)" class="wasm-screen_yraxis_btnset">
+        <v-icon class="wasm-screen_yaxis_p wasm-screen_floatbtn" @click="onAxisButton('y', 'n')">mdi-rotate-left</v-icon>
+        <v-icon class="wasm-screen_yaxis_n wasm-screen_floatbtn" @click="onAxisButton('y', 'p')">mdi-rotate-right</v-icon>
+      </div>
+      <div v-if="isAxixBtnActive('x', false)" class="wasm-screen_xraxis_btnset">
+        <v-icon class="wasm-screen_zaxis_p wasm-screen_floatbtn" @click="onAxisButton('x', 'n')">mdi-rotate-left</v-icon>
+        <v-icon class="wasm-screen_zaxis_n wasm-screen_floatbtn" @click="onAxisButton('x', 'p')">mdi-rotate-right</v-icon>
+      </div>
       <div class="wasm-screen_floating_btnset" :style="btnsetPosStyle">
         <v-icon v-if="isBtnActive('y')" class="wasm-screen_arrow_u wasm-screen_floatbtn" @click="onFloatingButton('y', 'p')">mdi-arrow-up-bold</v-icon>
         <v-icon v-if="isBtnActive('y')" class="wasm-screen_arrow_d wasm-screen_floatbtn" @click="onFloatingButton('y', 'n')">mdi-arrow-up-bold</v-icon>
@@ -21,6 +45,20 @@ import { defineComponent, toRefs, onMounted, ref } from 'vue';
 import { RotateInfo, Axis, Layer, Dir } from '@/class/cubeutils';
 import init, { start, on_animation } from '@/wasm/package.js';
 
+interface AxisAreaInfo{
+  cx: number, cy: number, axis: Axis,
+  minx: number, maxx: number,
+  miny: number, maxy:number,
+}
+const AXISAREA_INFO_LIST: AxisAreaInfo[] = [
+  {cx: 335, cy: 300, minx: 0, maxx: 0, miny: 0, maxy: 0, axis: "x"},
+  {cx: 205, cy:  80, minx: 0, maxx: 0, miny: 0, maxy: 0, axis: "y"},
+  {cx:  75, cy: 300, minx: 0, maxx: 0, miny: 0, maxy: 0, axis: "z"},
+  {cx: 745, cy: 300, minx: 0, maxx: 0, miny: 0, maxy: 0, axis: "z"},
+  {cx: 615, cy:  80, minx: 0, maxx: 0, miny: 0, maxy: 0, axis: "y"},
+  {cx: 485, cy: 300, minx: 0, maxx: 0, miny: 0, maxy: 0, axis: "x"},
+]
+
 interface SurfaceInfo{
   cx: number, cy: number,
   minx: number, maxx: number,
@@ -30,7 +68,7 @@ interface SurfaceInfo{
 }
 
 // TODO get it from rust
-const SURFACE_INFO_LIST_ORG: SurfaceInfo[] = [
+const SURFACE_INFO_LIST: SurfaceInfo[] = [
   {cx: 135, cy: 165, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "pos", xlayer: "neg", ylayer: "pos", zlayer: "pos"},
   {cx: 170, cy: 145, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "pos", xlayer: "neg", ylayer: "pos", zlayer: "neu"},
   {cx: 205, cy: 125, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "pos", xlayer: "neg", ylayer: "pos", zlayer: "neg"},
@@ -61,9 +99,41 @@ const SURFACE_INFO_LIST_ORG: SurfaceInfo[] = [
   {cx: 260, cy: 295, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "pos", xlayer: "pos", ylayer: "neg", zlayer: "neu"},
   {cx: 295, cy: 275, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "pos", xlayer: "pos", ylayer: "neg", zlayer: "neg"},
   //
+  //
+  {cx: 545, cy: 285, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "neg", zlayer: "neg", ylayer: "neg", xlayer: "pos"},
+  {cx: 580, cy: 265, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "neg", zlayer: "neg", ylayer: "neg", xlayer: "neu"},
+  {cx: 615, cy: 245, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "neg", zlayer: "neg", ylayer: "neg", xlayer: "neg"},
+  {cx: 580, cy: 305, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "neg", zlayer: "neu", ylayer: "neg", xlayer: "pos"},
+  {cx: 615, cy: 285, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "neg", zlayer: "neu", ylayer: "neg", xlayer: "neu"},
+  {cx: 650, cy: 265, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "neg", zlayer: "neu", ylayer: "neg", xlayer: "neg"},
+  {cx: 615, cy: 325, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "neg", zlayer: "pos", ylayer: "neg", xlayer: "pos"},
+  {cx: 650, cy: 305, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "neg", zlayer: "pos", ylayer: "neg", xlayer: "neu"},
+  {cx: 685, cy: 285, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "neg", zlayer: "pos", ylayer: "neg", xlayer: "neg"},
+  //
+  {cx: 530, cy: 175, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "neg", zlayer: "neg", ylayer: "pos", xlayer: "pos"},
+  {cx: 565, cy: 155, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "neg", zlayer: "neg", ylayer: "pos", xlayer: "neu"},
+  {cx: 600, cy: 135, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "neg", zlayer: "neg", ylayer: "pos", xlayer: "neg"},
+  {cx: 530, cy: 215, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "neg", zlayer: "neg", ylayer: "neu", xlayer: "pos"},
+  {cx: 565, cy: 195, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "neg", zlayer: "neg", ylayer: "neu", xlayer: "neu"},
+  {cx: 600, cy: 175, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "neg", zlayer: "neg", ylayer: "neu", xlayer: "neg"},
+  {cx: 530, cy: 255, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "neg", zlayer: "neg", ylayer: "neg", xlayer: "pos"},
+  {cx: 565, cy: 235, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "neg", zlayer: "neg", ylayer: "neg", xlayer: "neu"},
+  {cx: 600, cy: 215, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "neg", zlayer: "neg", ylayer: "neg", xlayer: "neg"},
+  //
+  {cx: 635, cy: 135, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "neg", zlayer: "neg", ylayer: "pos", xlayer: "neg"},
+  {cx: 635, cy: 175, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "neg", zlayer: "neg", ylayer: "neu", xlayer: "neg"},
+  {cx: 635, cy: 215, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "neg", zlayer: "neg", ylayer: "neg", xlayer: "neg"},
+  {cx: 670, cy: 155, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "neg", zlayer: "neu", ylayer: "pos", xlayer: "neg"},
+  {cx: 670, cy: 195, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "neg", zlayer: "neu", ylayer: "neu", xlayer: "neg"},
+  {cx: 670, cy: 235, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "neg", zlayer: "neu", ylayer: "neg", xlayer: "neg"},
+  {cx: 705, cy: 175, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "neg", zlayer: "pos", ylayer: "pos", xlayer: "neg"},
+  {cx: 705, cy: 215, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "neg", zlayer: "pos", ylayer: "neu", xlayer: "neg"},
+  {cx: 705, cy: 255, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "neg", zlayer: "pos", ylayer: "neg", xlayer: "neg"},
+
+  //
 ];
 // let sortedArray: {cx: number, cy: number, minx: number, maxx: number, miny: number, maxy:number, sortval: number;}[] = [];
-const AREA_OFFSET = 32;
+const AREA_OFFSET = 28;
 
 export default defineComponent({
   name: "WasmScreen",
@@ -72,6 +142,7 @@ export default defineComponent({
     const interfaceSetConfig = ref<any>(() => {});
     const interfaceRotate = ref<any>(() => {});
     const infoIdx = ref<number>(-1);
+    const axisInfoIdx = ref<number>(-1);
     const btnsetPosStyle = ref<object>({display: 'none'});
     const floatingPanel = ref(null);
 
@@ -99,22 +170,56 @@ export default defineComponent({
     const onButtonOperation = (axis: Axis, layer: Layer, dir: Dir) => {
       rotateAction({ axis: axis, layer: layer, dir: dir });
     };
-    const isBtnActive = (axis: Axis) => {
-      const wkInfo = SURFACE_INFO_LIST_ORG[infoIdx.value];
-      return (!!wkInfo && wkInfo.surAxis != axis);
+    const isAxixBtnActive = (axis: Axis, isFront: boolean) => {
+      const wkInfo = AXISAREA_INFO_LIST[axisInfoIdx.value];
+      return (!!wkInfo && wkInfo.axis == axis && isBackAxisIdx() != isFront);
+    };
+    const isBtnActive = (btnAxis: Axis) => {
+      const wkInfo = SURFACE_INFO_LIST[infoIdx.value];
+      if (!wkInfo) return false;
+      const wkBtnAxis = convertBtnAxisToAxis(btnAxis);
+      return (!!wkInfo && wkInfo.surAxis != wkBtnAxis);
+    };
+    const convertBtnAxisToAxis = (btnAxis: Axis) => {
+      if (isBackIdx()) {
+        if (btnAxis == 'x') return 'z'
+        else if (btnAxis == 'z') return 'x';
+      }
+      return btnAxis;
+    }
+    const isBackAxisIdx = (): boolean => {
+      return axisInfoIdx.value >= 3;
+    }
+    const isBackIdx = (): boolean => {
+      return infoIdx.value >= 27;
+    }
+    const onAxisButton = (axis: Axis, dir: Dir) => {
+      rotateAction({ axis: axis, layer: "all", dir: dir });
     };
     const onFloatingButton = (btnAxis: Axis, btnDir: Dir) => {
-      // console.log(`axis=${btnAxis}, dir=${btnDir}`);
-      const wkInfo = SURFACE_INFO_LIST_ORG[infoIdx.value];
-      if (btnAxis == wkInfo.surAxis) return;
+      const wkInfo = SURFACE_INFO_LIST[infoIdx.value];
+      if (!wkInfo) return false;
+      const wkBtnAxis = convertBtnAxisToAxis(btnAxis);
+      // console.log(`btnAxis=${btnAxis}, wkBtnAxis=${wkBtnAxis}, dir=${btnDir}`);
+      if (wkBtnAxis == wkInfo.surAxis) return;
       //
       let rAxis: Axis = "x";
-      if (btnAxis == "x") {
-        if (wkInfo.surAxis == "y") {rAxis = "z"} else {rAxis = "y"}
-      } else if (btnAxis == "y") {
-        if (wkInfo.surAxis == "x") {rAxis = "z"} else {rAxis = "x"}
-      } else if (btnAxis == "z") {
-        if (wkInfo.surAxis == "y") {rAxis = "x"} else {rAxis = "y"}
+      if (isBackIdx()) {
+        if (wkBtnAxis == "y") {
+          if (wkInfo.surAxis == "x") {rAxis = "z"} else {rAxis = "x"}
+        } else if (wkBtnAxis == "x") {
+          if (wkInfo.surAxis == "z") {rAxis = "y"} else {rAxis = "z"}
+        }else if (wkBtnAxis == "z") {
+          if (wkInfo.surAxis == "y") {rAxis = "x"} else {rAxis = "y"}
+        }
+      } else {
+        if (wkBtnAxis == "x") {
+          if (wkInfo.surAxis == "y") {rAxis = "z"} else {rAxis = "y"}
+        } else if (wkBtnAxis == "y") {
+          if (wkInfo.surAxis == "x") {rAxis = "z"} else {rAxis = "x"}
+        } else if (wkBtnAxis == "z") {
+          if (wkInfo.surAxis == "y") {rAxis = "x"} else {rAxis = "y"}
+        }
       }
       //
       let rLayer: Layer = "pos";
@@ -127,12 +232,22 @@ export default defineComponent({
       }
       //
       let rDir: Dir = btnDir;
-      if (wkInfo.surAxis == "y" && rAxis == "z") {
-        rDir = btnDir == "p" ? "n" : "p";
-      } else if (wkInfo.surAxis == "z" && rAxis == "x") {
-        rDir = btnDir == "p" ? "n" : "p";
-      } else if (wkInfo.surAxis == "x" && rAxis == "y") {
-        rDir = btnDir == "p" ? "n" : "p";
+      if (isBackIdx()) {
+        if (wkInfo.surAxis == "y" && rAxis == "x") {
+          rDir = btnDir == "p" ? "n" : "p";
+        } else if (wkInfo.surAxis == "z" && rAxis == "y") {
+          rDir = btnDir == "p" ? "n" : "p";
+        } else if (wkInfo.surAxis == "x" && rAxis == "z") {
+          rDir = btnDir == "p" ? "n" : "p";
+        }
+      } else {
+        if (wkInfo.surAxis == "y" && rAxis == "z") {
+          rDir = btnDir == "p" ? "n" : "p";
+        } else if (wkInfo.surAxis == "z" && rAxis == "x") {
+          rDir = btnDir == "p" ? "n" : "p";
+        } else if (wkInfo.surAxis == "x" && rAxis == "y") {
+          rDir = btnDir == "p" ? "n" : "p";
+        }
       }
       //
       // console.log(`rAxis=${rAxis}, rDir=${rDir}`);
@@ -142,11 +257,17 @@ export default defineComponent({
       if (floatingPanel.value != e.target) {
         return;
       }
-      const currentIdx = getCurrentPosIdx(e.offsetX, e.offsetY);
-      // console.log(`x=${e.offsetX}, Y=${e.offsetY}, currentIdx=${currentIdx}`);
+      // console.log(`x=${e.offsetX}, Y=${e.offsetY}`);
+
+      const currentAxisIdx = getCurrentAxisPosIdx(e.offsetX, e.offsetY);
+      if (axisInfoIdx.value != currentAxisIdx) {
+        axisInfoIdx.value = currentAxisIdx;
+      }
+
+      const currentIdx = (currentAxisIdx >= 0) ? -1 : getCurrentPosIdx(e.offsetX, e.offsetY);
       if (infoIdx.value != currentIdx) {
         if (currentIdx >= 0) {
-          const wkInfo = SURFACE_INFO_LIST_ORG[currentIdx];
+          const wkInfo = SURFACE_INFO_LIST[currentIdx];
           btnsetPosStyle.value =  {
             display: 'block',
             left: wkInfo.cx + 'px',
@@ -161,29 +282,55 @@ export default defineComponent({
     const onWasmAnimation = () => {
       return on_animation();
     };
+    // TODO calc it at rust module
     const initCalcPosArea = () => {
-      for (let wk_surface_inf of SURFACE_INFO_LIST_ORG) {
+      for (let wk_axis_inf of AXISAREA_INFO_LIST) {
+        wk_axis_inf.minx = wk_axis_inf.cx - AREA_OFFSET;
+        wk_axis_inf.maxx = wk_axis_inf.cx + AREA_OFFSET;
+        wk_axis_inf.miny = wk_axis_inf.cy - AREA_OFFSET;
+        wk_axis_inf.maxy = wk_axis_inf.cy + AREA_OFFSET;
+      }
+      for (let wk_surface_inf of SURFACE_INFO_LIST) {
         wk_surface_inf.minx = wk_surface_inf.cx - AREA_OFFSET;
         wk_surface_inf.maxx = wk_surface_inf.cx + AREA_OFFSET;
         wk_surface_inf.miny = wk_surface_inf.cy - AREA_OFFSET;
         wk_surface_inf.maxy = wk_surface_inf.cy + AREA_OFFSET;
       }
-      // sortedArray = SURFACE_INFO_LIST_ORG.sort((n1,n2) => {
+      // sortedArray = SURFACE_INFO_LIST.sort((n1,n2) => {
       //   if (n1.sortval > n2.sortval) return 1;
       //   if (n1.sortval < n2.sortval) return -1;
       //   return 0;
       // });
     };
+    const getCurrentAxisPosIdx = (x: number, y:number): number => {
+      const isInAxisInfo = (info: AxisAreaInfo): boolean => {
+        return (info.minx <= x) && (x <= info.maxx) && (info.miny <= y) && (y <= info.maxy);
+      };
+      if (axisInfoIdx.value >= 0 && isInAxisInfo(AXISAREA_INFO_LIST[axisInfoIdx.value])) {
+        return axisInfoIdx.value;
+      }
+
+      let retIdx = -1;
+      AXISAREA_INFO_LIST.forEach((info, index) => {
+        if (retIdx >= 0) return;
+        if (isInAxisInfo(info)) {
+          retIdx = index;
+          return;
+        }
+      });
+      return retIdx;
+    };
     const getCurrentPosIdx = (x: number, y:number): number => {
       const isInInfo = (info: SurfaceInfo): boolean => {
         return (info.minx <= x) && (x <= info.maxx) && (info.miny <= y) && (y <= info.maxy);
       };
-      if (infoIdx.value >= 0 && isInInfo(SURFACE_INFO_LIST_ORG[infoIdx.value])) {
+
+      if (infoIdx.value >= 0 && isInInfo(SURFACE_INFO_LIST[infoIdx.value])) {
         return infoIdx.value;
       }
 
       let retIdx = -1;
-      SURFACE_INFO_LIST_ORG.forEach((info, index) => {
+      SURFACE_INFO_LIST.forEach((info, index) => {
         if (retIdx >= 0) return;
         if (isInInfo(info)) {
           retIdx = index;
@@ -207,11 +354,14 @@ export default defineComponent({
       rotate,
       rotateAction,
       btnsetPosStyle,
+      isAxixBtnActive,
       isBtnActive,
       //
       onMouseMove,
       onButtonOperation,
       onFloatingButton,
+      onAxisButton,
+      //
       onWasmAnimation,
       //
       floatingPanel
@@ -239,13 +389,15 @@ export default defineComponent({
   left: 15px;
   font-size: 24px;
 }
+
 .wasm-screen_floatingpnl{
   position: absolute;
-  width: 400px;
+  width: 900px;
   height: 400px;
 }
 .wasm-screen_floatbtn, .wasm-screen_floating_btnset{
   position: absolute;
+  color: gray;
 }
 .wasm-screen_arrow_u{
   transform: rotate(0deg);
@@ -276,6 +428,61 @@ export default defineComponent({
   transform: rotate(-120deg);
   top: 0px;
   left: -30px;
+}
+
+.wasm-screen_xaxis_btnset, .wasm-screen_zraxis_btnset{
+  position: absolute;
+  top: 280px;
+}
+.wasm-screen_xaxis_btnset{
+  left: 315px;
+}
+.wasm-screen_zraxis_btnset{
+  left: 725px;
+}
+.wasm-screen_xaxis_p, .wasm-screen_xaxis_n{
+  transform: scale(1.7, 1.7) rotateY(60deg);
+}
+.wasm-screen_xaxis_n {
+  top: 12px;
+  left: 16px;
+}
+
+.wasm-screen_zaxis_btnset, .wasm-screen_xraxis_btnset {
+  position: absolute;
+  top: 295px;
+}
+.wasm-screen_zaxis_btnset {
+  left: 50px;
+}
+.wasm-screen_xraxis_btnset {
+  left: 460px;
+}
+.wasm-screen_zaxis_p, .wasm-screen_zaxis_n {
+  transform: scale(1.7, 1.7) rotateY(60deg);
+}
+.wasm-screen_zaxis_n {
+  top: -10px;
+  left: 18px;
+}
+
+.wasm-screen_yaxis_btnset, .wasm-screen_yraxis_btnset {
+  position: absolute;
+  top: 55px;
+}
+.wasm-screen_yaxis_btnset {
+  left: 206px;
+}
+.wasm-screen_yraxis_btnset {
+  left: 616px;
+}
+.wasm-screen_yaxis_p, .wasm-screen_yaxis_n{
+  transform: scale(1.5, 1);
+  left: -12px;
+}
+.wasm-screen_yaxis_n{
+  left: -12px;
+  top: 20px;
 }
 
 </style>
