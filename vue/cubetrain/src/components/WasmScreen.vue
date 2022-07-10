@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div :id="id"></div>
+    <div :id="id" :class="{'backview-hide': !isBackViewVisible}"></div>
     <div class="wasm-screen_floatingpnl" @mousemove="onMouseMove" ref="floatingPanel">
       <div v-if="isAxixBtnActive('x', true)" class="wasm-screen_xaxis_btnset">
         <v-icon class="wasm-screen_xaxis_p wasm-screen_floatbtn" @click="onAxisButton('x', 'p')">mdi-rotate-left</v-icon>
@@ -368,7 +368,8 @@ export default defineComponent({
     }
   },
   props: {
-    id: {type: String, required: true}
+    id: {type: String, required: true},
+    isBackViewVisible: {type: Boolean, required: true},
   },
 })
 </script>
@@ -484,5 +485,7 @@ export default defineComponent({
   left: -12px;
   top: 20px;
 }
-
+.backview-hide .wasm-back-view{
+  display: none;
+}
 </style>

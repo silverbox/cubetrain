@@ -187,7 +187,7 @@ fn view(model: &Model) -> Node<Msg> {
             ],
         ],
         div![
-            C!["wasm-sub-container"],
+            C!["wasm-sub-container wasm-back-view"],
             label![
                 C!["wasm-label"],
                 "背面ビュー"

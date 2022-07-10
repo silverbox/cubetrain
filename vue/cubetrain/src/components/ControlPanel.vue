@@ -42,6 +42,36 @@
         </v-btn>
       </v-col>
     </v-row>
+    <v-row>
+      <v-col md="12" class="item-center">
+        <v-divider/>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col md="8" class="item-center">
+        <v-label class="input-label">表示切り替え</v-label>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col md="8" offset-md="1" class="item-center">
+        <v-checkbox
+          v-model="isButtonPanelVisible"
+          label="操作ボタン"
+          hide-details
+          @change="onChangeButtonPanelVisible"
+        ></v-checkbox>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col md="8" offset-md="1" class="item-center">
+        <v-checkbox
+          v-model="isBackViewVisible"
+          label="背面ビュー"
+          hide-details
+          @change="onChangeBackViewVisible"
+        ></v-checkbox>
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 <script lang="ts">
@@ -50,9 +80,11 @@ import { defineComponent, toRefs, ref } from "vue";
 export default defineComponent({
   name: "ControlPanel",
   setup(props: any, context: any){
-    const { defspeed, defscramblestep } = toRefs(props)
+    const { defspeed, defscramblestep, defIsButtonPanelVisible, defIsBackViewVisible } = toRefs(props)
     const speed = ref<number>(defspeed.value);
     const scramblestep = ref<number>(defscramblestep.value);
+    const isButtonPanelVisible = ref<boolean>(defIsButtonPanelVisible.value);
+    const isBackViewVisible = ref<boolean>(defIsBackViewVisible.value);
 
     //
     const controlAction = (type: string) => {
@@ -66,18 +98,30 @@ export default defineComponent({
       }
       context.emit("controlAction", type, cfgvalue);
     };
+    const onChangeButtonPanelVisible = () => {
+      context.emit("changeButtonPanelVisible", isButtonPanelVisible.value);
+    };
+    const onChangeBackViewVisible = () => {
+      context.emit("changeBackViewVisible", isBackViewVisible.value);
+    };
 
     //
     return {
       speed,
       scramblestep,
+      isButtonPanelVisible,
+      isBackViewVisible,
       //
       controlAction,
+      onChangeButtonPanelVisible,
+      onChangeBackViewVisible,
     }
   },
   props: {
     defspeed: {type: Number, required: true},
     defscramblestep: {type: Number, required: true},
+    defIsButtonPanelVisible: {type: Boolean, required: true},
+    defIsBackViewVisible: {type: Boolean, required: true},
   }
 })
 </script>
@@ -93,4 +137,4 @@ export default defineComponent({
   height: 90%;
   width: 40px;
 }
-</style>
+</style>defIsBackViewVisible

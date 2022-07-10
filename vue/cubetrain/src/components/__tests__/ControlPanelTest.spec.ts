@@ -9,7 +9,9 @@ describe('Test ControlPanel.vue', () => {
     const wrapper = shallowMount(ControlPanel, {
       props: {
         defspeed: 40,
-        defscramblestep: STEP
+        defscramblestep: STEP,
+        defIsButtonPanelVisible: true,
+        defIsBackViewVisible: true
       }
     })
     expect(wrapper).toBeDefined();

@@ -8,11 +8,11 @@
       priority=0
       ref="appBar"
     >
-      <v-app-bar-nav-icon @click="showConfigMenu = !showConfigMenu"></v-app-bar-nav-icon>
+      <template v-slot:prepend>
+        <v-app-bar-nav-icon @click="showConfigMenu = !showConfigMenu"></v-app-bar-nav-icon>
+      </template>
 
       <v-toolbar-title>{{ appTitle }}</v-toolbar-title>
-
-      <v-spacer></v-spacer>
 
       <!-- <v-btn icon>
         <v-icon>mdi-heart</v-icon>
@@ -21,13 +21,22 @@
       <v-btn icon>
         <v-icon>mdi-magnify</v-icon>
       </v-btn> -->
+      <template v-slot:append>
+        <v-btn icon @click="(showHistory = !showHistory)">
+          <v-icon>mdi-history</v-icon>
+        </v-btn>
+      </template>
     </v-app-bar>
 
     <v-navigation-drawer permanent v-if="showConfigMenu">
       <ControlPanel
         :defspeed=40
         :defscramblestep=24
+        :defIsButtonPanelVisible="isButtonPanelVisible"
+        :defIsBackViewVisible="isBackViewVisible"
         @controlAction="onControlAction"
+        @changeButtonPanelVisible="onChangeButtonPanelVisible"
+        @changeBackViewVisible="onChangeBackViewVisible"
       />
     </v-navigation-drawer>
 
@@ -97,7 +106,7 @@
       <!-- Provides the application the proper gutter -->
         <v-container class="grey lighten-5" fluid>
           <v-row>
-            <v-col md="4">
+            <v-col md="4" v-if="isButtonPanelVisible">
               <RotationPanel
                 @rotateAction="onRotateAction"
               />
@@ -105,18 +114,12 @@
             <v-col md="8">
               <WasmScreen
                 id="wasmelemid"
+                :isBackViewVisible="isBackViewVisible"
                 ref="wasm"
                 @rotateAction="onRotateAction"
               />
             </v-col>
           </v-row>
-          <v-btn
-            class="history-button"
-            @click="(showHistory = !showHistory)"
-          >
-            <v-icon v-if="showHistory">mdi-arrow-right</v-icon>
-            <v-icon v-else>mdi-animation</v-icon>
-          </v-btn>
         </v-container>
     </v-main>
     <v-dialog
@@ -199,6 +202,9 @@ export default defineComponent({
     const selectedStep = ref<number>(-1);
     const roteteStepListHeight = ref<number>(500);
     //
+    const isButtonPanelVisible = ref<boolean>(true);
+    const isBackViewVisible = ref<boolean>(true);
+    //
     const onControlAction = async (type: string, val: number) => {
       if (wasm.value != null) {
         wasm.value.setConfig(type, val);
@@ -218,6 +224,14 @@ export default defineComponent({
         default:
           break;
       }
+    };
+    const onChangeButtonPanelVisible = (isButtonPanelVisiblePrm: boolean) => {
+      isButtonPanelVisible.value = isButtonPanelVisiblePrm;
+      console.log(isButtonPanelVisiblePrm);
+    };
+    const onChangeBackViewVisible = (isBackViewVisiblePrm: boolean) => {
+      isBackViewVisible.value = isBackViewVisiblePrm;
+      console.log(isBackViewVisiblePrm);
     };
     const onClearStep = () => {
       wasm.value.setConfig("reset", 0);
@@ -453,6 +467,8 @@ export default defineComponent({
       historyMenuButton,
       rotateStepListElem,
       roteteStepListHeight,
+      isButtonPanelVisible,
+      isBackViewVisible,
       // const
       appTitle,
       menuitems,
@@ -475,6 +491,8 @@ export default defineComponent({
       onBookmarkChanged,
       onPlaybackOneStep,
       onPlayforwardOneStep,
+      onChangeButtonPanelVisible,
+      onChangeBackViewVisible,
       // conmuted
       getStepClass,
       getStepStr,
