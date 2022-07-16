@@ -64,28 +64,47 @@
     </v-row>
     <v-row>
       <v-col md="8" offset-md="1" class="item-center">
-        <v-checkbox
-          v-model="isBackViewVisible"
-          label="背面ビュー"
-          hide-details
-          @change="onChangeBackViewVisible"
-        ></v-checkbox>
+        <v-radio-group v-model="cubeViewType" @change="onChangeCubeViewType">
+          <v-radio
+            v-for="cubeViewTypeInfo in cubeViewTypeInfoList"
+            :key="cubeViewTypeInfo.value"
+            :label="cubeViewTypeInfo.label"
+            :value="cubeViewTypeInfo.value"
+          ></v-radio>
+        </v-radio-group>
       </v-col>
     </v-row>
   </v-container>
 </template>
 <script lang="ts">
 import { defineComponent, toRefs, ref } from "vue";
+import { CubeViewType } from '@/class/types';
+
+interface CubeViewTypeInfo{
+  label: string,
+  value: CubeViewType
+}
+const CUBE_VIE_TYPE_INFO: CubeViewTypeInfo[] = [{
+  label: "正面＆背面（横）",
+  value: "horizon"
+},{
+  label: "正面＆背面（縦）",
+  value: "vertical"
+},{
+  label: "片方向",
+  value: "alone"
+}];
 
 export default defineComponent({
   name: "ControlPanel",
   setup(props: any, context: any){
-    const { defspeed, defscramblestep, defIsButtonPanelVisible, defIsBackViewVisible } = toRefs(props)
+    const { defspeed, defscramblestep, defIsButtonPanelVisible, defCubeViewType } = toRefs(props)
+
     const speed = ref<number>(defspeed.value);
     const scramblestep = ref<number>(defscramblestep.value);
     const isButtonPanelVisible = ref<boolean>(defIsButtonPanelVisible.value);
-    const isBackViewVisible = ref<boolean>(defIsBackViewVisible.value);
-
+    const cubeViewType = ref<CubeViewType>(defCubeViewType.value);
+    const cubeViewTypeInfoList = CUBE_VIE_TYPE_INFO;
     //
     const controlAction = (type: string) => {
       let cfgvalue = 0;
@@ -101,27 +120,29 @@ export default defineComponent({
     const onChangeButtonPanelVisible = () => {
       context.emit("changeButtonPanelVisible", isButtonPanelVisible.value);
     };
-    const onChangeBackViewVisible = () => {
-      context.emit("changeBackViewVisible", isBackViewVisible.value);
+    const onChangeCubeViewType = () => {
+      context.emit("changeCubeViewType", cubeViewType.value);
     };
 
     //
     return {
+      cubeViewTypeInfoList,
+      //
+      cubeViewType,
       speed,
       scramblestep,
       isButtonPanelVisible,
-      isBackViewVisible,
       //
       controlAction,
       onChangeButtonPanelVisible,
-      onChangeBackViewVisible,
+      onChangeCubeViewType,
     }
   },
   props: {
     defspeed: {type: Number, required: true},
     defscramblestep: {type: Number, required: true},
     defIsButtonPanelVisible: {type: Boolean, required: true},
-    defIsBackViewVisible: {type: Boolean, required: true},
+    defCubeViewType: {type: String, required: true},
   }
 })
 </script>
@@ -137,4 +158,4 @@ export default defineComponent({
   height: 90%;
   width: 40px;
 }
-</style>defIsBackViewVisible
+</style>

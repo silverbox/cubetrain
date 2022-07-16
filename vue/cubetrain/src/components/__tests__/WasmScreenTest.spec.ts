@@ -13,7 +13,7 @@ describe('WasmScreen.vue', () => {
     const wrapper = shallowMount(WasmScreen, {
       props: {
         id: 'unittest-id',
-        isBackViewVisible: true
+        cubeViewType: "horizon"
       }
     });
 

@@ -11,7 +11,7 @@ describe('Test ControlPanel.vue', () => {
         defspeed: 40,
         defscramblestep: STEP,
         defIsButtonPanelVisible: true,
-        defIsBackViewVisible: true
+        defCubeViewType: "horizon"
       }
     })
     expect(wrapper).toBeDefined();

@@ -33,10 +33,10 @@
         :defspeed=40
         :defscramblestep=24
         :defIsButtonPanelVisible="isButtonPanelVisible"
-        :defIsBackViewVisible="isBackViewVisible"
+        :defCubeViewType="cubeViewType"
         @controlAction="onControlAction"
         @changeButtonPanelVisible="onChangeButtonPanelVisible"
-        @changeBackViewVisible="onChangeBackViewVisible"
+        @changeCubeViewType="onChangeCubeViewType"
       />
     </v-navigation-drawer>
 
@@ -114,7 +114,7 @@
             <v-col md="8">
               <WasmScreen
                 id="wasmelemid"
-                :isBackViewVisible="isBackViewVisible"
+                :cubeViewType="cubeViewType"
                 ref="wasm"
                 @rotateAction="onRotateAction"
               />
@@ -165,6 +165,8 @@ import ControlPanel from './components/ControlPanel.vue'
 import WasmScreen from './components/WasmScreen.vue'
 import { RotateStep, RotateStepManager,  } from '@/class/rotateStepManager'
 import { Axis, Layer, Dir, RotateStatus, cubeutils } from '@/class/cubeutils';
+import { CubeViewType } from '@/class/types';
+
 const { getRotateInfoFromStr, getRandomRotateInfo } = cubeutils();
 
 type stepMenuType = "import" | "export" | "revert" | "replay" | "bookmark";
@@ -202,8 +204,8 @@ export default defineComponent({
     const selectedStep = ref<number>(-1);
     const roteteStepListHeight = ref<number>(500);
     //
-    const isButtonPanelVisible = ref<boolean>(true);
-    const isBackViewVisible = ref<boolean>(true);
+    const isButtonPanelVisible = ref<boolean>(false);
+    const cubeViewType = ref<CubeViewType>("horizon");
     //
     const onControlAction = async (type: string, val: number) => {
       if (wasm.value != null) {
@@ -227,11 +229,9 @@ export default defineComponent({
     };
     const onChangeButtonPanelVisible = (isButtonPanelVisiblePrm: boolean) => {
       isButtonPanelVisible.value = isButtonPanelVisiblePrm;
-      console.log(isButtonPanelVisiblePrm);
     };
-    const onChangeBackViewVisible = (isBackViewVisiblePrm: boolean) => {
-      isBackViewVisible.value = isBackViewVisiblePrm;
-      console.log(isBackViewVisiblePrm);
+    const onChangeCubeViewType = (cubeViewTypePrm: CubeViewType) => {
+      cubeViewType.value = cubeViewTypePrm;
     };
     const onClearStep = () => {
       wasm.value.setConfig("reset", 0);
@@ -461,14 +461,14 @@ export default defineComponent({
     });
     //
     return {
-      // ref
+      // refisSideBySideView
       wasm,
       appBar,
       historyMenuButton,
       rotateStepListElem,
       roteteStepListHeight,
       isButtonPanelVisible,
-      isBackViewVisible,
+      cubeViewType,
       // const
       appTitle,
       menuitems,
@@ -492,7 +492,7 @@ export default defineComponent({
       onPlaybackOneStep,
       onPlayforwardOneStep,
       onChangeButtonPanelVisible,
-      onChangeBackViewVisible,
+      onChangeCubeViewType,
       // conmuted
       getStepClass,
       getStepStr,

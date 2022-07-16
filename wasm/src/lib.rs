@@ -169,7 +169,7 @@ fn view(model: &Model) -> Node<Msg> {
             input_ev(Ev::Input, Msg::AnimationSpeedChanged),
         ],
         div![
-            C!["wasm-sub-container"],
+            C!["wasm-sub-container wasm-front-view"],
             label![
                 C!["wasm-label"],
                 "正面ビュー"
