@@ -1,8 +1,8 @@
 <template>
   <div>
     <div :id="id" :class="getPanelClass"></div>
-    <div class="wasm-screen_floatingpnl" :style="getFloatingPnlStyle" @mousemove="onMouseMove" ref="floatingPanel">
-      <v-btn icon @click="(isAltView = !isAltView)" class="wasm-screen_altviewbtn">
+    <div class="wasm-screen_floatingpnl" :style="getFloatingPnlStyle" @mousemove="onMouseMove" @touchend="onTouchEnd" ref="floatingPanel">
+      <v-btn icon @click="toggleAltView" class="wasm-screen_altviewbtn">
         <v-icon>mdi-format-rotate-90</v-icon>
       </v-btn>
       <div :style="getAxixBtnStyle('x', true)" class="wasm-screen_xaxis_btnset">
@@ -159,7 +159,7 @@ export default defineComponent({
     const infoIdx = ref<number>(-1);
     const axisInfoIdx = ref<number>(-1);
     const btnsetPosStyle = ref<object>({display: 'none'});
-    const floatingPanel = ref(null);
+    const floatingPanel = ref<any>(undefined);
 
     const setConfig = (type: string, val: number) => {
       const unitedstr = `${type} ${val}`;
@@ -230,6 +230,10 @@ export default defineComponent({
       }
       return btnAxis;
     }
+    const toggleAltView = () => {
+      isAltView.value = !isAltView.value;
+      onPanelMouseAction(-1, -1);
+    };
     const onAxisButton = (axis: Axis, dir: Dir) => {
       rotateAction({ axis: axis, layer: "all", dir: dir });
     };
@@ -316,12 +320,28 @@ export default defineComponent({
       if (floatingPanel.value != e.target) {
         return;
       }
+      onPanelMouseAction(e.offsetX, e.offsetY);
+    };
+    const onTouchEnd = (e: TouchEvent) => {
+      if (floatingPanel.value == undefined) {
+        return;
+      }
+      var touchObject = e.changedTouches[0] ;
+      var touchX = touchObject.clientX ;
+      var touchY = touchObject.clientY ;
+      const clientRect = floatingPanel.value.getBoundingClientRect();
+      if (!clientRect) {
+        return;
+      }
+      onPanelMouseAction(touchX - clientRect.left, touchY - clientRect.top);
+    };
+    const onPanelMouseAction = (x: number, y: number) => {
       switch(cubeViewType.value){
         case "horizon":
-          isFrontViewMoving.value = e.offsetX < X_OFFSET;
+          isFrontViewMoving.value = x < X_OFFSET;
           break;
         case "vertical":
-          isFrontViewMoving.value = e.offsetY < Y_OFFSET;
+          isFrontViewMoving.value = y < Y_OFFSET;
           break;
         default:
           isFrontViewMoving.value = true;
@@ -330,12 +350,12 @@ export default defineComponent({
       // const wkOX = getMousePosOffsetX();
       // const wkOY = getMousePosOffsetY();
 
-      const currentAxisIdx = getCurrentAxisPosIdx(e.offsetX, e.offsetY);
+      const currentAxisIdx = getCurrentAxisPosIdx(x, y);
       if (axisInfoIdx.value != currentAxisIdx) {
         axisInfoIdx.value = currentAxisIdx;
       }
 
-      const currentIdx = (currentAxisIdx >= 0) ? -1 : getCurrentPosIdx(e.offsetX, e.offsetY);
+      const currentIdx = (currentAxisIdx >= 0) ? -1 : getCurrentPosIdx(x, y);
       if (infoIdx.value != currentIdx) {
         if (currentIdx >= 0) {
           const wkInfo = SURFACE_INFO_LIST_SET[getInfoSetIndex()][currentIdx];
@@ -350,6 +370,7 @@ export default defineComponent({
         infoIdx.value = currentIdx;
       }
     };
+
     const onWasmAnimation = () => {
       return on_animation();
     };
@@ -457,7 +478,9 @@ export default defineComponent({
       isAltView,
       isBtnActive,
       //
+      toggleAltView,
       onMouseMove,
+      onTouchEnd,
       onButtonOperation,
       onFloatingButton,
       onAxisButton,
