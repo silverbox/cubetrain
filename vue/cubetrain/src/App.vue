@@ -28,7 +28,7 @@
       </template>
     </v-app-bar>
 
-    <v-navigation-drawer permanent v-if="showConfigMenu">
+    <v-navigation-drawer v-model="showConfigMenu">
       <ControlPanel
         :defspeed=40
         :defscramblestep=24
@@ -40,7 +40,7 @@
       />
     </v-navigation-drawer>
 
-    <v-navigation-drawer permanent position="right" v-if="showHistory">
+    <v-navigation-drawer position="right" v-model="showHistory">
       <v-list density="compact">
         <v-list-subheader>操作履歴</v-list-subheader>
         <v-list-subheader>
@@ -106,7 +106,7 @@
       <!-- Provides the application the proper gutter -->
         <v-container class="grey lighten-5" fluid>
           <v-row>
-            <v-col md="4" v-if="isButtonPanelVisible">
+            <v-col md="4" v-if="caredButtonPanelVisible">
               <RotationPanel
                 @rotateAction="onRotateAction"
               />
@@ -114,7 +114,7 @@
             <v-col md="8">
               <WasmScreen
                 id="wasmelemid"
-                :cubeViewType="cubeViewType"
+                :cubeViewType="caredCubeViewType"
                 ref="wasm"
                 @rotateAction="onRotateAction"
               />
@@ -122,9 +122,7 @@
           </v-row>
         </v-container>
     </v-main>
-    <v-dialog
-      v-model="fileImportDialog"
-    >
+    <v-dialog v-model="fileImportDialog">
       <v-card>
         <v-card-text>操作履歴ファイル取込み</v-card-text>
         <v-file-input
@@ -139,9 +137,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog
-      v-model="showBookmarkDialog"
-    >
+    <v-dialog v-model="showBookmarkDialog">
       <v-card>
         <v-card-text>ブックマーク</v-card-text>
         <v-text-field
@@ -159,13 +155,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, onUnmounted } from 'vue'
+import { defineComponent, ref, onMounted, onUnmounted, computed } from 'vue'
 import RotationPanel from './components/RotationPanel.vue'
 import ControlPanel from './components/ControlPanel.vue'
 import WasmScreen from './components/WasmScreen.vue'
 import { RotateStep, RotateStepManager,  } from '@/class/rotateStepManager'
 import { Axis, Layer, Dir, RotateStatus, cubeutils } from '@/class/cubeutils';
 import { CubeViewType } from '@/class/types';
+import { useMq } from "vue3-mq";
 
 const { getRotateInfoFromStr, getRandomRotateInfo } = cubeutils();
 
@@ -174,6 +171,8 @@ type stepMenuType = "import" | "export" | "revert" | "replay" | "bookmark";
 export default defineComponent({
   name: 'App',
   setup(){
+    const mq = useMq();
+
     const stepManager: RotateStepManager = new RotateStepManager();
     const wait = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
     
@@ -230,6 +229,15 @@ export default defineComponent({
     const onChangeButtonPanelVisible = (isButtonPanelVisiblePrm: boolean) => {
       isButtonPanelVisible.value = isButtonPanelVisiblePrm;
     };
+    const caredButtonPanelVisible = computed((): boolean => {
+      return isButtonPanelVisible.value && ['lg', 'xl'].includes(mq.current)
+    });
+    const caredCubeViewType = computed((): CubeViewType => {
+      if (cubeViewType.value == "horizon" && ['xs'].includes(mq.current)) {
+        return "vertical"
+      }
+      return cubeViewType.value;
+    });
     const onChangeCubeViewType = (cubeViewTypePrm: CubeViewType) => {
       cubeViewType.value = cubeViewTypePrm;
     };
@@ -498,6 +506,8 @@ export default defineComponent({
       getStepStr,
       getStepSubstr,
       isActiveItem,
+      caredButtonPanelVisible,
+      caredCubeViewType,
       //
       waitForAnimation
     };
