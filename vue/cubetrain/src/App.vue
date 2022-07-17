@@ -8,11 +8,11 @@
       priority=0
       ref="appBar"
     >
-      <v-app-bar-nav-icon @click="showConfigMenu = !showConfigMenu"></v-app-bar-nav-icon>
+      <template v-slot:prepend>
+        <v-app-bar-nav-icon @click="showConfigMenu = !showConfigMenu"></v-app-bar-nav-icon>
+      </template>
 
       <v-toolbar-title>{{ appTitle }}</v-toolbar-title>
-
-      <v-spacer></v-spacer>
 
       <!-- <v-btn icon>
         <v-icon>mdi-heart</v-icon>
@@ -21,17 +21,26 @@
       <v-btn icon>
         <v-icon>mdi-magnify</v-icon>
       </v-btn> -->
+      <template v-slot:append>
+        <v-btn icon @click="(showHistory = !showHistory)">
+          <v-icon>mdi-history</v-icon>
+        </v-btn>
+      </template>
     </v-app-bar>
 
-    <v-navigation-drawer permanent v-if="showConfigMenu">
+    <v-navigation-drawer v-model="showConfigMenu">
       <ControlPanel
         :defspeed=40
         :defscramblestep=24
+        :defIsButtonPanelVisible="isButtonPanelVisible"
+        :defCubeViewType="cubeViewType"
         @controlAction="onControlAction"
+        @changeButtonPanelVisible="onChangeButtonPanelVisible"
+        @changeCubeViewType="onChangeCubeViewType"
       />
     </v-navigation-drawer>
 
-    <v-navigation-drawer permanent position="right" v-if="showHistory">
+    <v-navigation-drawer position="right" v-model="showHistory">
       <v-list density="compact">
         <v-list-subheader>操作履歴</v-list-subheader>
         <v-list-subheader>
@@ -97,7 +106,7 @@
       <!-- Provides the application the proper gutter -->
         <v-container class="grey lighten-5" fluid>
           <v-row>
-            <v-col md="4">
+            <v-col md="4" v-if="caredButtonPanelVisible">
               <RotationPanel
                 @rotateAction="onRotateAction"
               />
@@ -105,23 +114,15 @@
             <v-col md="8">
               <WasmScreen
                 id="wasmelemid"
+                :cubeViewType="caredCubeViewType"
                 ref="wasm"
                 @rotateAction="onRotateAction"
               />
             </v-col>
           </v-row>
-          <v-btn
-            class="history-button"
-            @click="(showHistory = !showHistory)"
-          >
-            <v-icon v-if="showHistory">mdi-arrow-right</v-icon>
-            <v-icon v-else>mdi-animation</v-icon>
-          </v-btn>
         </v-container>
     </v-main>
-    <v-dialog
-      v-model="fileImportDialog"
-    >
+    <v-dialog v-model="fileImportDialog">
       <v-card>
         <v-card-text>操作履歴ファイル取込み</v-card-text>
         <v-file-input
@@ -136,9 +137,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog
-      v-model="showBookmarkDialog"
-    >
+    <v-dialog v-model="showBookmarkDialog">
       <v-card>
         <v-card-text>ブックマーク</v-card-text>
         <v-text-field
@@ -156,12 +155,15 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, onUnmounted } from 'vue'
+import { defineComponent, ref, onMounted, onUnmounted, computed } from 'vue'
 import RotationPanel from './components/RotationPanel.vue'
 import ControlPanel from './components/ControlPanel.vue'
 import WasmScreen from './components/WasmScreen.vue'
 import { RotateStep, RotateStepManager,  } from '@/class/rotateStepManager'
 import { Axis, Layer, Dir, RotateStatus, cubeutils } from '@/class/cubeutils';
+import { CubeViewType } from '@/class/types';
+import { useMq } from "vue3-mq";
+
 const { getRotateInfoFromStr, getRandomRotateInfo } = cubeutils();
 
 type stepMenuType = "import" | "export" | "revert" | "replay" | "bookmark";
@@ -169,6 +171,8 @@ type stepMenuType = "import" | "export" | "revert" | "replay" | "bookmark";
 export default defineComponent({
   name: 'App',
   setup(){
+    const mq = useMq();
+
     const stepManager: RotateStepManager = new RotateStepManager();
     const wait = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
     
@@ -199,6 +203,9 @@ export default defineComponent({
     const selectedStep = ref<number>(-1);
     const roteteStepListHeight = ref<number>(500);
     //
+    const isButtonPanelVisible = ref<boolean>(false);
+    const cubeViewType = ref<CubeViewType>("horizon");
+    //
     const onControlAction = async (type: string, val: number) => {
       if (wasm.value != null) {
         wasm.value.setConfig(type, val);
@@ -218,6 +225,21 @@ export default defineComponent({
         default:
           break;
       }
+    };
+    const onChangeButtonPanelVisible = (isButtonPanelVisiblePrm: boolean) => {
+      isButtonPanelVisible.value = isButtonPanelVisiblePrm;
+    };
+    const caredButtonPanelVisible = computed((): boolean => {
+      return isButtonPanelVisible.value && ['lg', 'xl'].includes(mq.current)
+    });
+    const caredCubeViewType = computed((): CubeViewType => {
+      if (cubeViewType.value == "horizon" && ['xs'].includes(mq.current)) {
+        return "vertical"
+      }
+      return cubeViewType.value;
+    });
+    const onChangeCubeViewType = (cubeViewTypePrm: CubeViewType) => {
+      cubeViewType.value = cubeViewTypePrm;
     };
     const onClearStep = () => {
       wasm.value.setConfig("reset", 0);
@@ -447,12 +469,14 @@ export default defineComponent({
     });
     //
     return {
-      // ref
+      // refisSideBySideView
       wasm,
       appBar,
       historyMenuButton,
       rotateStepListElem,
       roteteStepListHeight,
+      isButtonPanelVisible,
+      cubeViewType,
       // const
       appTitle,
       menuitems,
@@ -475,11 +499,15 @@ export default defineComponent({
       onBookmarkChanged,
       onPlaybackOneStep,
       onPlayforwardOneStep,
+      onChangeButtonPanelVisible,
+      onChangeCubeViewType,
       // conmuted
       getStepClass,
       getStepStr,
       getStepSubstr,
       isActiveItem,
+      caredButtonPanelVisible,
+      caredCubeViewType,
       //
       waitForAnimation
     };

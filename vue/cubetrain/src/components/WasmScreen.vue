@@ -1,28 +1,31 @@
 <template>
   <div>
-    <div :id="id"></div>
-    <div class="wasm-screen_floatingpnl" @mousemove="onMouseMove" ref="floatingPanel">
-      <div v-if="isAxixBtnActive('x', true)" class="wasm-screen_xaxis_btnset">
+    <div :id="id" :class="getPanelClass"></div>
+    <div class="wasm-screen_floatingpnl" :style="getFloatingPnlStyle" @mousemove="onMouseMove" @touchend="onTouchEnd" ref="floatingPanel">
+      <v-btn icon @click="toggleAltView" class="wasm-screen_altviewbtn">
+        <v-icon>mdi-format-rotate-90</v-icon>
+      </v-btn>
+      <div :style="getAxixBtnStyle('x', true)" class="wasm-screen_xaxis_btnset">
         <v-icon class="wasm-screen_xaxis_p wasm-screen_floatbtn" @click="onAxisButton('x', 'p')">mdi-rotate-left</v-icon>
         <v-icon class="wasm-screen_xaxis_n wasm-screen_floatbtn" @click="onAxisButton('x', 'n')">mdi-rotate-right</v-icon>
       </div>
-      <div v-if="isAxixBtnActive('y', true)" class="wasm-screen_yaxis_btnset">
+      <div :style="getAxixBtnStyle('y', true)" class="wasm-screen_yaxis_btnset">
         <v-icon class="wasm-screen_yaxis_p wasm-screen_floatbtn" @click="onAxisButton('y', 'p')">mdi-rotate-left</v-icon>
         <v-icon class="wasm-screen_yaxis_n wasm-screen_floatbtn" @click="onAxisButton('y', 'n')">mdi-rotate-right</v-icon>
       </div>
-      <div v-if="isAxixBtnActive('z', true)" class="wasm-screen_zaxis_btnset">
+      <div :style="getAxixBtnStyle('z', true)" class="wasm-screen_zaxis_btnset">
         <v-icon class="wasm-screen_zaxis_p wasm-screen_floatbtn" @click="onAxisButton('z', 'p')">mdi-rotate-left</v-icon>
         <v-icon class="wasm-screen_zaxis_n wasm-screen_floatbtn" @click="onAxisButton('z', 'n')">mdi-rotate-right</v-icon>
       </div>
-      <div v-if="isAxixBtnActive('z', false)" class="wasm-screen_zraxis_btnset">
+      <div :style="getAxixBtnStyle('z', false)" class="wasm-screen_zraxis_btnset">
         <v-icon class="wasm-screen_xaxis_p wasm-screen_floatbtn" @click="onAxisButton('z', 'n')">mdi-rotate-left</v-icon>
         <v-icon class="wasm-screen_xaxis_n wasm-screen_floatbtn" @click="onAxisButton('z', 'p')">mdi-rotate-right</v-icon>
       </div>
-      <div v-if="isAxixBtnActive('y', false)" class="wasm-screen_yraxis_btnset">
+      <div :style="getAxixBtnStyle('y', false)" class="wasm-screen_yraxis_btnset">
         <v-icon class="wasm-screen_yaxis_p wasm-screen_floatbtn" @click="onAxisButton('y', 'n')">mdi-rotate-left</v-icon>
         <v-icon class="wasm-screen_yaxis_n wasm-screen_floatbtn" @click="onAxisButton('y', 'p')">mdi-rotate-right</v-icon>
       </div>
-      <div v-if="isAxixBtnActive('x', false)" class="wasm-screen_xraxis_btnset">
+      <div :style="getAxixBtnStyle('x', false)" class="wasm-screen_xraxis_btnset">
         <v-icon class="wasm-screen_zaxis_p wasm-screen_floatbtn" @click="onAxisButton('x', 'n')">mdi-rotate-left</v-icon>
         <v-icon class="wasm-screen_zaxis_n wasm-screen_floatbtn" @click="onAxisButton('x', 'p')">mdi-rotate-right</v-icon>
       </div>
@@ -41,23 +44,29 @@
   </div>
 </template>
 <script lang="ts">
-import { defineComponent, toRefs, onMounted, ref } from 'vue';
-import { RotateInfo, Axis, Layer, Dir } from '@/class/cubeutils';
+import { defineComponent, toRefs, onMounted, ref, computed } from 'vue';
 import init, { start, on_animation } from '@/wasm/package.js';
+import { RotateInfo, Axis, Layer, Dir } from '@/class/cubeutils';
+// import { CubeViewType } from '@/class/types';
 
 interface AxisAreaInfo{
   cx: number, cy: number, axis: Axis,
   minx: number, maxx: number,
   miny: number, maxy:number,
 }
-const AXISAREA_INFO_LIST: AxisAreaInfo[] = [
+
+// TODO get it from rust
+const AXISAREA_INFO_LIST_FR: AxisAreaInfo[] = [
   {cx: 335, cy: 300, minx: 0, maxx: 0, miny: 0, maxy: 0, axis: "x"},
   {cx: 205, cy:  80, minx: 0, maxx: 0, miny: 0, maxy: 0, axis: "y"},
   {cx:  75, cy: 300, minx: 0, maxx: 0, miny: 0, maxy: 0, axis: "z"},
-  {cx: 745, cy: 300, minx: 0, maxx: 0, miny: 0, maxy: 0, axis: "z"},
-  {cx: 615, cy:  80, minx: 0, maxx: 0, miny: 0, maxy: 0, axis: "y"},
-  {cx: 485, cy: 300, minx: 0, maxx: 0, miny: 0, maxy: 0, axis: "x"},
 ]
+const AXISAREA_INFO_LIST_BK: AxisAreaInfo[] = [
+  {cx: 335, cy: 300, minx: 0, maxx: 0, miny: 0, maxy: 0, axis: "z"},
+  {cx: 205, cy:  80, minx: 0, maxx: 0, miny: 0, maxy: 0, axis: "y"},
+  {cx:  75, cy: 300, minx: 0, maxx: 0, miny: 0, maxy: 0, axis: "x"},
+]
+const AXISAREA_INFO_LIST_SET = [AXISAREA_INFO_LIST_FR, AXISAREA_INFO_LIST_BK]
 
 interface SurfaceInfo{
   cx: number, cy: number,
@@ -68,7 +77,7 @@ interface SurfaceInfo{
 }
 
 // TODO get it from rust
-const SURFACE_INFO_LIST: SurfaceInfo[] = [
+const SURFACE_INFO_LIST_FR: SurfaceInfo[] = [
   {cx: 135, cy: 165, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "pos", xlayer: "neg", ylayer: "pos", zlayer: "pos"},
   {cx: 170, cy: 145, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "pos", xlayer: "neg", ylayer: "pos", zlayer: "neu"},
   {cx: 205, cy: 125, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "pos", xlayer: "neg", ylayer: "pos", zlayer: "neg"},
@@ -98,53 +107,59 @@ const SURFACE_INFO_LIST: SurfaceInfo[] = [
   {cx: 225, cy: 315, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "pos", xlayer: "pos", ylayer: "neg", zlayer: "pos"},
   {cx: 260, cy: 295, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "pos", xlayer: "pos", ylayer: "neg", zlayer: "neu"},
   {cx: 295, cy: 275, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "pos", xlayer: "pos", ylayer: "neg", zlayer: "neg"},
+];
   //
+const SURFACE_INFO_LIST_BK: SurfaceInfo[] = [
+  {cx: 135, cy: 285, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "neg", zlayer: "neg", ylayer: "neg", xlayer: "pos"},
+  {cx: 170, cy: 265, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "neg", zlayer: "neg", ylayer: "neg", xlayer: "neu"},
+  {cx: 205, cy: 245, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "neg", zlayer: "neg", ylayer: "neg", xlayer: "neg"},
+  {cx: 175, cy: 305, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "neg", zlayer: "neu", ylayer: "neg", xlayer: "pos"},
+  {cx: 205, cy: 285, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "neg", zlayer: "neu", ylayer: "neg", xlayer: "neu"},
+  {cx: 240, cy: 265, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "neg", zlayer: "neu", ylayer: "neg", xlayer: "neg"},
+  {cx: 205, cy: 325, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "neg", zlayer: "pos", ylayer: "neg", xlayer: "pos"},
+  {cx: 240, cy: 305, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "neg", zlayer: "pos", ylayer: "neg", xlayer: "neu"},
+  {cx: 275, cy: 285, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "neg", zlayer: "pos", ylayer: "neg", xlayer: "neg"},
   //
-  {cx: 545, cy: 285, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "neg", zlayer: "neg", ylayer: "neg", xlayer: "pos"},
-  {cx: 580, cy: 265, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "neg", zlayer: "neg", ylayer: "neg", xlayer: "neu"},
-  {cx: 615, cy: 245, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "neg", zlayer: "neg", ylayer: "neg", xlayer: "neg"},
-  {cx: 580, cy: 305, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "neg", zlayer: "neu", ylayer: "neg", xlayer: "pos"},
-  {cx: 615, cy: 285, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "neg", zlayer: "neu", ylayer: "neg", xlayer: "neu"},
-  {cx: 650, cy: 265, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "neg", zlayer: "neu", ylayer: "neg", xlayer: "neg"},
-  {cx: 615, cy: 325, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "neg", zlayer: "pos", ylayer: "neg", xlayer: "pos"},
-  {cx: 650, cy: 305, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "neg", zlayer: "pos", ylayer: "neg", xlayer: "neu"},
-  {cx: 685, cy: 285, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "y", surLayer: "neg", zlayer: "pos", ylayer: "neg", xlayer: "neg"},
+  {cx: 115, cy: 175, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "neg", zlayer: "neg", ylayer: "pos", xlayer: "pos"},
+  {cx: 150, cy: 155, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "neg", zlayer: "neg", ylayer: "pos", xlayer: "neu"},
+  {cx: 185, cy: 135, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "neg", zlayer: "neg", ylayer: "pos", xlayer: "neg"},
+  {cx: 115, cy: 215, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "neg", zlayer: "neg", ylayer: "neu", xlayer: "pos"},
+  {cx: 150, cy: 195, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "neg", zlayer: "neg", ylayer: "neu", xlayer: "neu"},
+  {cx: 185, cy: 175, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "neg", zlayer: "neg", ylayer: "neu", xlayer: "neg"},
+  {cx: 115, cy: 255, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "neg", zlayer: "neg", ylayer: "neg", xlayer: "pos"},
+  {cx: 150, cy: 235, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "neg", zlayer: "neg", ylayer: "neg", xlayer: "neu"},
+  {cx: 185, cy: 215, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "neg", zlayer: "neg", ylayer: "neg", xlayer: "neg"},
   //
-  {cx: 530, cy: 175, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "neg", zlayer: "neg", ylayer: "pos", xlayer: "pos"},
-  {cx: 565, cy: 155, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "neg", zlayer: "neg", ylayer: "pos", xlayer: "neu"},
-  {cx: 600, cy: 135, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "neg", zlayer: "neg", ylayer: "pos", xlayer: "neg"},
-  {cx: 530, cy: 215, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "neg", zlayer: "neg", ylayer: "neu", xlayer: "pos"},
-  {cx: 565, cy: 195, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "neg", zlayer: "neg", ylayer: "neu", xlayer: "neu"},
-  {cx: 600, cy: 175, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "neg", zlayer: "neg", ylayer: "neu", xlayer: "neg"},
-  {cx: 530, cy: 255, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "neg", zlayer: "neg", ylayer: "neg", xlayer: "pos"},
-  {cx: 565, cy: 235, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "neg", zlayer: "neg", ylayer: "neg", xlayer: "neu"},
-  {cx: 600, cy: 215, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "z", surLayer: "neg", zlayer: "neg", ylayer: "neg", xlayer: "neg"},
-  //
-  {cx: 635, cy: 135, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "neg", zlayer: "neg", ylayer: "pos", xlayer: "neg"},
-  {cx: 635, cy: 175, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "neg", zlayer: "neg", ylayer: "neu", xlayer: "neg"},
-  {cx: 635, cy: 215, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "neg", zlayer: "neg", ylayer: "neg", xlayer: "neg"},
-  {cx: 670, cy: 155, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "neg", zlayer: "neu", ylayer: "pos", xlayer: "neg"},
-  {cx: 670, cy: 195, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "neg", zlayer: "neu", ylayer: "neu", xlayer: "neg"},
-  {cx: 670, cy: 235, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "neg", zlayer: "neu", ylayer: "neg", xlayer: "neg"},
-  {cx: 705, cy: 175, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "neg", zlayer: "pos", ylayer: "pos", xlayer: "neg"},
-  {cx: 705, cy: 215, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "neg", zlayer: "pos", ylayer: "neu", xlayer: "neg"},
-  {cx: 705, cy: 255, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "neg", zlayer: "pos", ylayer: "neg", xlayer: "neg"},
-
+  {cx: 220, cy: 135, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "neg", zlayer: "neg", ylayer: "pos", xlayer: "neg"},
+  {cx: 220, cy: 175, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "neg", zlayer: "neg", ylayer: "neu", xlayer: "neg"},
+  {cx: 220, cy: 215, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "neg", zlayer: "neg", ylayer: "neg", xlayer: "neg"},
+  {cx: 255, cy: 155, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "neg", zlayer: "neu", ylayer: "pos", xlayer: "neg"},
+  {cx: 255, cy: 195, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "neg", zlayer: "neu", ylayer: "neu", xlayer: "neg"},
+  {cx: 255, cy: 235, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "neg", zlayer: "neu", ylayer: "neg", xlayer: "neg"},
+  {cx: 290, cy: 175, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "neg", zlayer: "pos", ylayer: "pos", xlayer: "neg"},
+  {cx: 290, cy: 215, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "neg", zlayer: "pos", ylayer: "neu", xlayer: "neg"},
+  {cx: 290, cy: 255, minx: 0, maxx: 0, miny: 0, maxy: 0, surAxis: "x", surLayer: "neg", zlayer: "pos", ylayer: "neg", xlayer: "neg"},
   //
 ];
+const SURFACE_INFO_LIST_SET = [SURFACE_INFO_LIST_FR, SURFACE_INFO_LIST_BK]
 // let sortedArray: {cx: number, cy: number, minx: number, maxx: number, miny: number, maxy:number, sortval: number;}[] = [];
 const AREA_OFFSET = 28;
+
+const X_OFFSET = 415;
+const Y_OFFSET = 415;
 
 export default defineComponent({
   name: "WasmScreen",
   setup(props: any, context: any){
-    const { id } = toRefs(props)
+    const { id, cubeViewType } = toRefs(props)
     const interfaceSetConfig = ref<any>(() => {});
     const interfaceRotate = ref<any>(() => {});
+    const isAltView = ref<boolean>(false);
+    const isFrontViewMoving = ref<boolean>(true);
     const infoIdx = ref<number>(-1);
     const axisInfoIdx = ref<number>(-1);
     const btnsetPosStyle = ref<object>({display: 'none'});
-    const floatingPanel = ref(null);
+    const floatingPanel = ref<any>(undefined);
 
     const setConfig = (type: string, val: number) => {
       const unitedstr = `${type} ${val}`;
@@ -170,54 +185,80 @@ export default defineComponent({
     const onButtonOperation = (axis: Axis, layer: Layer, dir: Dir) => {
       rotateAction({ axis: axis, layer: layer, dir: dir });
     };
-    const isAxixBtnActive = (axis: Axis, isFront: boolean) => {
-      const wkInfo = AXISAREA_INFO_LIST[axisInfoIdx.value];
-      return (!!wkInfo && wkInfo.axis == axis && isBackAxisIdx() != isFront);
+    const getFloatingPnlStyle = computed(() => {
+      const width = cubeViewType.value === "horizon" ? X_OFFSET * 2 : X_OFFSET;
+      const height = cubeViewType.value === "vertical" ? Y_OFFSET * 2 : Y_OFFSET;
+      return {
+        width: width + 'px',
+        height: height + 'px'
+      }
+    });
+    const getAxixBtnStyle = (axis: Axis, isFront: boolean) => {
+      const wkInfo = AXISAREA_INFO_LIST_SET[getInfoSetIndex()][axisInfoIdx.value];
+      const isVisible = (!!wkInfo && wkInfo.axis == axis && (getInfoSetIndex() == 0) == isFront);
+
+      const wkOX = getMousePosOffsetX();
+      const wkOY = getMousePosOffsetY();
+      let top = 55;
+      let left = 206;
+      switch(axis){
+        case "x":
+          top = isFront ? 280 : 295;
+          left = isFront ? 315 : 45;
+          break;
+        case "z":
+          top = isFront ? 295 : 280;
+          left = isFront ? 50 : 310;
+          break;
+      }
+      return {
+        display: isVisible ? "block" : "none",
+        left: (left + wkOX) + 'px',
+        top: (top + wkOY) + 'px'
+      }
     };
     const isBtnActive = (btnAxis: Axis) => {
-      const wkInfo = SURFACE_INFO_LIST[infoIdx.value];
+      const wkInfo = SURFACE_INFO_LIST_SET[getInfoSetIndex()][infoIdx.value];
       if (!wkInfo) return false;
       const wkBtnAxis = convertBtnAxisToAxis(btnAxis);
       return (!!wkInfo && wkInfo.surAxis != wkBtnAxis);
     };
     const convertBtnAxisToAxis = (btnAxis: Axis) => {
-      if (isBackIdx()) {
+      if (!isFrontViewMoving.value) {
         if (btnAxis == 'x') return 'z'
         else if (btnAxis == 'z') return 'x';
       }
       return btnAxis;
     }
-    const isBackAxisIdx = (): boolean => {
-      return axisInfoIdx.value >= 3;
-    }
-    const isBackIdx = (): boolean => {
-      return infoIdx.value >= 27;
-    }
+    const toggleAltView = () => {
+      isAltView.value = !isAltView.value;
+      onPanelMouseAction(-1, -1);
+    };
     const onAxisButton = (axis: Axis, dir: Dir) => {
       rotateAction({ axis: axis, layer: "all", dir: dir });
     };
     const onFloatingButton = (btnAxis: Axis, btnDir: Dir) => {
-      const wkInfo = SURFACE_INFO_LIST[infoIdx.value];
+      const wkInfo = SURFACE_INFO_LIST_SET[getInfoSetIndex()][infoIdx.value];
       if (!wkInfo) return false;
       const wkBtnAxis = convertBtnAxisToAxis(btnAxis);
       // console.log(`btnAxis=${btnAxis}, wkBtnAxis=${wkBtnAxis}, dir=${btnDir}`);
       if (wkBtnAxis == wkInfo.surAxis) return;
       //
       let rAxis: Axis = "x";
-      if (isBackIdx()) {
-        if (wkBtnAxis == "y") {
-          if (wkInfo.surAxis == "x") {rAxis = "z"} else {rAxis = "x"}
-        } else if (wkBtnAxis == "x") {
-          if (wkInfo.surAxis == "z") {rAxis = "y"} else {rAxis = "z"}
-        }else if (wkBtnAxis == "z") {
-          if (wkInfo.surAxis == "y") {rAxis = "x"} else {rAxis = "y"}
-        }
-      } else {
+      if (isFrontViewMoving.value) {
         if (wkBtnAxis == "x") {
           if (wkInfo.surAxis == "y") {rAxis = "z"} else {rAxis = "y"}
         } else if (wkBtnAxis == "y") {
           if (wkInfo.surAxis == "x") {rAxis = "z"} else {rAxis = "x"}
         } else if (wkBtnAxis == "z") {
+          if (wkInfo.surAxis == "y") {rAxis = "x"} else {rAxis = "y"}
+        }
+      } else {
+        if (wkBtnAxis == "y") {
+          if (wkInfo.surAxis == "x") {rAxis = "z"} else {rAxis = "x"}
+        } else if (wkBtnAxis == "x") {
+          if (wkInfo.surAxis == "z") {rAxis = "y"} else {rAxis = "z"}
+        }else if (wkBtnAxis == "z") {
           if (wkInfo.surAxis == "y") {rAxis = "x"} else {rAxis = "y"}
         }
       }
@@ -232,15 +273,7 @@ export default defineComponent({
       }
       //
       let rDir: Dir = btnDir;
-      if (isBackIdx()) {
-        if (wkInfo.surAxis == "y" && rAxis == "x") {
-          rDir = btnDir == "p" ? "n" : "p";
-        } else if (wkInfo.surAxis == "z" && rAxis == "y") {
-          rDir = btnDir == "p" ? "n" : "p";
-        } else if (wkInfo.surAxis == "x" && rAxis == "z") {
-          rDir = btnDir == "p" ? "n" : "p";
-        }
-      } else {
+      if (isFrontViewMoving.value) {
         if (wkInfo.surAxis == "y" && rAxis == "z") {
           rDir = btnDir == "p" ? "n" : "p";
         } else if (wkInfo.surAxis == "z" && rAxis == "x") {
@@ -248,30 +281,88 @@ export default defineComponent({
         } else if (wkInfo.surAxis == "x" && rAxis == "y") {
           rDir = btnDir == "p" ? "n" : "p";
         }
+      } else {
+        if (wkInfo.surAxis == "y" && rAxis == "x") {
+          rDir = btnDir == "p" ? "n" : "p";
+        } else if (wkInfo.surAxis == "z" && rAxis == "y") {
+          rDir = btnDir == "p" ? "n" : "p";
+        } else if (wkInfo.surAxis == "x" && rAxis == "z") {
+          rDir = btnDir == "p" ? "n" : "p";
+        }
       }
       //
       // console.log(`rAxis=${rAxis}, rDir=${rDir}`);
       rotateAction({ axis: rAxis, layer: rLayer, dir: rDir });
     };
+    const getInfoSetIndex = () => {
+      return isFrontViewMoving.value ? 0 : 1;
+    };
+    const getPanelClass = computed(() => {
+      let retClass = "";
+      if (cubeViewType.value === "alone") {
+        retClass = (isAltView.value) ? "frontview-hide" : "backview-hide" ;
+      }
+      retClass += (isAltView.value) ? " altview" : " norview";
+      retClass += " " + cubeViewType.value;
+      // switch(cubeViewType.value){
+      //   case "horizon":
+      //     isFrontViewMoving.value = e.offsetX < X_OFFSET;
+      //     break;
+      //   case "vertical":
+      //     isFrontViewMoving.value = e.offsetY < Y_OFFSET;
+      //     break;
+      //   default:
+      //     retClass =  (isAltView.value) ? "backview-hide" : "frontview-hide";
+      // }
+      return retClass;
+    });
     const onMouseMove = (e: MouseEvent) => {
       if (floatingPanel.value != e.target) {
         return;
       }
-      // console.log(`x=${e.offsetX}, Y=${e.offsetY}`);
+      onPanelMouseAction(e.offsetX, e.offsetY);
+    };
+    const onTouchEnd = (e: TouchEvent) => {
+      if (floatingPanel.value == undefined) {
+        return;
+      }
+      var touchObject = e.changedTouches[0] ;
+      var touchX = touchObject.clientX ;
+      var touchY = touchObject.clientY ;
+      const clientRect = floatingPanel.value.getBoundingClientRect();
+      if (!clientRect) {
+        return;
+      }
+      onPanelMouseAction(touchX - clientRect.left, touchY - clientRect.top);
+    };
+    const onPanelMouseAction = (x: number, y: number) => {
+      switch(cubeViewType.value){
+        case "horizon":
+          isFrontViewMoving.value = x < X_OFFSET;
+          break;
+        case "vertical":
+          isFrontViewMoving.value = y < Y_OFFSET;
+          break;
+        default:
+          isFrontViewMoving.value = true;
+      }
+      if (isAltView.value) isFrontViewMoving.value = !isFrontViewMoving.value;
+      // const wkOX = getMousePosOffsetX();
+      // const wkOY = getMousePosOffsetY();
 
-      const currentAxisIdx = getCurrentAxisPosIdx(e.offsetX, e.offsetY);
+      const currentAxisIdx = getCurrentAxisPosIdx(x, y);
       if (axisInfoIdx.value != currentAxisIdx) {
         axisInfoIdx.value = currentAxisIdx;
       }
 
-      const currentIdx = (currentAxisIdx >= 0) ? -1 : getCurrentPosIdx(e.offsetX, e.offsetY);
+      const currentIdx = (currentAxisIdx >= 0) ? -1 : getCurrentPosIdx(x, y);
       if (infoIdx.value != currentIdx) {
         if (currentIdx >= 0) {
-          const wkInfo = SURFACE_INFO_LIST[currentIdx];
+          const wkInfo = SURFACE_INFO_LIST_SET[getInfoSetIndex()][currentIdx];
           btnsetPosStyle.value =  {
             display: 'block',
-            left: wkInfo.cx + 'px',
-            top: wkInfo.cy + 'px'
+            left: (wkInfo.cx + getMousePosOffsetX()) + 'px',
+            top: (wkInfo.cy + getMousePosOffsetY()) + 'px'
           }
         } else {
           btnsetPosStyle.value = {display: 'none'}
@@ -279,22 +370,27 @@ export default defineComponent({
         infoIdx.value = currentIdx;
       }
     };
+
     const onWasmAnimation = () => {
       return on_animation();
     };
     // TODO calc it at rust module
     const initCalcPosArea = () => {
-      for (let wk_axis_inf of AXISAREA_INFO_LIST) {
-        wk_axis_inf.minx = wk_axis_inf.cx - AREA_OFFSET;
-        wk_axis_inf.maxx = wk_axis_inf.cx + AREA_OFFSET;
-        wk_axis_inf.miny = wk_axis_inf.cy - AREA_OFFSET;
-        wk_axis_inf.maxy = wk_axis_inf.cy + AREA_OFFSET;
+      for (const wkAxisInfoList of AXISAREA_INFO_LIST_SET) {
+        for (let wk_axis_inf of wkAxisInfoList) {
+          wk_axis_inf.minx = wk_axis_inf.cx - AREA_OFFSET;
+          wk_axis_inf.maxx = wk_axis_inf.cx + AREA_OFFSET;
+          wk_axis_inf.miny = wk_axis_inf.cy - AREA_OFFSET;
+          wk_axis_inf.maxy = wk_axis_inf.cy + AREA_OFFSET;
+        }
       }
-      for (let wk_surface_inf of SURFACE_INFO_LIST) {
-        wk_surface_inf.minx = wk_surface_inf.cx - AREA_OFFSET;
-        wk_surface_inf.maxx = wk_surface_inf.cx + AREA_OFFSET;
-        wk_surface_inf.miny = wk_surface_inf.cy - AREA_OFFSET;
-        wk_surface_inf.maxy = wk_surface_inf.cy + AREA_OFFSET;
+      for (const wkInfoList of SURFACE_INFO_LIST_SET) {
+        for (let wk_surface_inf of wkInfoList) {
+          wk_surface_inf.minx = wk_surface_inf.cx - AREA_OFFSET;
+          wk_surface_inf.maxx = wk_surface_inf.cx + AREA_OFFSET;
+          wk_surface_inf.miny = wk_surface_inf.cy - AREA_OFFSET;
+          wk_surface_inf.maxy = wk_surface_inf.cy + AREA_OFFSET;
+        }
       }
       // sortedArray = SURFACE_INFO_LIST.sort((n1,n2) => {
       //   if (n1.sortval > n2.sortval) return 1;
@@ -302,16 +398,34 @@ export default defineComponent({
       //   return 0;
       // });
     };
+    const getMousePosOffsetX = (): number => {
+      if (cubeViewType.value == "horizon") {
+        return (!isFrontViewMoving.value == !isAltView.value) ? X_OFFSET : 0;
+      }
+      return 0;
+    };
+    const getMousePosOffsetY = (): number => {
+      if (cubeViewType.value == "vertical") {
+        return (!isFrontViewMoving.value == !isAltView.value) ? Y_OFFSET : 0;
+      }
+      return 0;
+    };
     const getCurrentAxisPosIdx = (x: number, y:number): number => {
+      const wkOX = getMousePosOffsetX();
+      const wkOY = getMousePosOffsetY();
+      // subroutine
       const isInAxisInfo = (info: AxisAreaInfo): boolean => {
-        return (info.minx <= x) && (x <= info.maxx) && (info.miny <= y) && (y <= info.maxy);
+        // console.log(`info.minx=${info.minx}, wkOX=${wkOX}, x=${x}, isFrontViewMoving.value=${isFrontViewMoving.value}`);
+        return (info.minx + wkOX <= x) && (x <= info.maxx + wkOX) && (info.miny + wkOY <= y) && (y <= info.maxy + wkOY);
       };
-      if (axisInfoIdx.value >= 0 && isInAxisInfo(AXISAREA_INFO_LIST[axisInfoIdx.value])) {
+
+      const wkAxisInfoList = AXISAREA_INFO_LIST_SET[getInfoSetIndex()];
+      if (axisInfoIdx.value >= 0 && isInAxisInfo(wkAxisInfoList[axisInfoIdx.value])) {
         return axisInfoIdx.value;
       }
 
       let retIdx = -1;
-      AXISAREA_INFO_LIST.forEach((info, index) => {
+      wkAxisInfoList.forEach((info, index) => {
         if (retIdx >= 0) return;
         if (isInAxisInfo(info)) {
           retIdx = index;
@@ -321,16 +435,19 @@ export default defineComponent({
       return retIdx;
     };
     const getCurrentPosIdx = (x: number, y:number): number => {
+      const wkOX = getMousePosOffsetX();
+      const wkOY = getMousePosOffsetY();
       const isInInfo = (info: SurfaceInfo): boolean => {
-        return (info.minx <= x) && (x <= info.maxx) && (info.miny <= y) && (y <= info.maxy);
+        return (info.minx + wkOX <= x) && (x <= info.maxx + wkOX) && (info.miny + wkOY <= y) && (y <= info.maxy + wkOY);
       };
 
-      if (infoIdx.value >= 0 && isInInfo(SURFACE_INFO_LIST[infoIdx.value])) {
+      const wkSurfaceInfoList = SURFACE_INFO_LIST_SET[getInfoSetIndex()];
+      if (infoIdx.value >= 0 && isInInfo(wkSurfaceInfoList[infoIdx.value])) {
         return infoIdx.value;
       }
 
       let retIdx = -1;
-      SURFACE_INFO_LIST.forEach((info, index) => {
+      wkSurfaceInfoList.forEach((info, index) => {
         if (retIdx >= 0) return;
         if (isInInfo(info)) {
           retIdx = index;
@@ -353,11 +470,17 @@ export default defineComponent({
       setConfig,
       rotate,
       rotateAction,
+      //
       btnsetPosStyle,
-      isAxixBtnActive,
+      getFloatingPnlStyle,
+      getAxixBtnStyle,
+      getPanelClass,
+      isAltView,
       isBtnActive,
       //
+      toggleAltView,
       onMouseMove,
+      onTouchEnd,
       onButtonOperation,
       onFloatingButton,
       onAxisButton,
@@ -368,17 +491,18 @@ export default defineComponent({
     }
   },
   props: {
-    id: {type: String, required: true}
+    id: {type: String, required: true},
+    cubeViewType: {type: String, required: true}
   },
 })
 </script>
+
 <style>
-.wasm-container {
+.wasm-container, .wasm-container>input {
   position: absolute;
-  display: flex;
 }
 .wasm-sub-container {
-  position: relative;
+  position: absolute;
 }
 .wasm-canvas {
   margin: 5px;
@@ -389,11 +513,16 @@ export default defineComponent({
   left: 15px;
   font-size: 24px;
 }
-
+.wasm-screen_altviewbtn {
+  position: absolute;
+  top: 45px;
+  left: 15px;
+}
 .wasm-screen_floatingpnl{
   position: absolute;
-  width: 900px;
-  height: 400px;
+}
+.wasm-screen_floatingpnl>div{
+  position: absolute;
 }
 .wasm-screen_floatbtn, .wasm-screen_floating_btnset{
   position: absolute;
@@ -430,16 +559,6 @@ export default defineComponent({
   left: -30px;
 }
 
-.wasm-screen_xaxis_btnset, .wasm-screen_zraxis_btnset{
-  position: absolute;
-  top: 280px;
-}
-.wasm-screen_xaxis_btnset{
-  left: 315px;
-}
-.wasm-screen_zraxis_btnset{
-  left: 725px;
-}
 .wasm-screen_xaxis_p, .wasm-screen_xaxis_n{
   transform: scale(1.7, 1.7) rotateY(60deg);
 }
@@ -447,34 +566,12 @@ export default defineComponent({
   top: 12px;
   left: 16px;
 }
-
-.wasm-screen_zaxis_btnset, .wasm-screen_xraxis_btnset {
-  position: absolute;
-  top: 295px;
-}
-.wasm-screen_zaxis_btnset {
-  left: 50px;
-}
-.wasm-screen_xraxis_btnset {
-  left: 460px;
-}
 .wasm-screen_zaxis_p, .wasm-screen_zaxis_n {
   transform: scale(1.7, 1.7) rotateY(60deg);
 }
 .wasm-screen_zaxis_n {
   top: -10px;
   left: 18px;
-}
-
-.wasm-screen_yaxis_btnset, .wasm-screen_yraxis_btnset {
-  position: absolute;
-  top: 55px;
-}
-.wasm-screen_yaxis_btnset {
-  left: 206px;
-}
-.wasm-screen_yraxis_btnset {
-  left: 616px;
 }
 .wasm-screen_yaxis_p, .wasm-screen_yaxis_n{
   transform: scale(1.5, 1);
@@ -485,4 +582,23 @@ export default defineComponent({
   top: 20px;
 }
 
+.altview.horizon .wasm-front-view {
+  left: 415px;
+}
+.altview.vertical .wasm-front-view {
+  top: 415px;
+}
+.altview.alone .wasm-front-view {
+  display: none;
+}
+
+.norview.horizon .wasm-back-view{
+  left: 415px;
+}
+.norview.vertical .wasm-back-view{
+  top: 415px;
+}
+.norview.alone .wasm-back-view{
+  display: none;
+}
 </style>

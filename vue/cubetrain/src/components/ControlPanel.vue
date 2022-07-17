@@ -42,18 +42,69 @@
         </v-btn>
       </v-col>
     </v-row>
+    <v-row>
+      <v-col md="12" class="item-center">
+        <v-divider/>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col md="8" class="item-center">
+        <v-label class="input-label">表示切り替え</v-label>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col md="8" offset-md="1" class="item-center">
+        <v-checkbox
+          v-model="isButtonPanelVisible"
+          label="操作ボタン"
+          hide-details
+          @change="onChangeButtonPanelVisible"
+        ></v-checkbox>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col md="8" offset-md="1" class="item-center">
+        <v-radio-group v-model="cubeViewType" @change="onChangeCubeViewType">
+          <v-radio
+            v-for="cubeViewTypeInfo in cubeViewTypeInfoList"
+            :key="cubeViewTypeInfo.value"
+            :label="cubeViewTypeInfo.label"
+            :value="cubeViewTypeInfo.value"
+          ></v-radio>
+        </v-radio-group>
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 <script lang="ts">
 import { defineComponent, toRefs, ref } from "vue";
+import { CubeViewType } from '@/class/types';
+
+interface CubeViewTypeInfo{
+  label: string,
+  value: CubeViewType
+}
+const CUBE_VIE_TYPE_INFO: CubeViewTypeInfo[] = [{
+  label: "正面＆背面（横）",
+  value: "horizon"
+},{
+  label: "正面＆背面（縦）",
+  value: "vertical"
+},{
+  label: "片方向",
+  value: "alone"
+}];
 
 export default defineComponent({
   name: "ControlPanel",
   setup(props: any, context: any){
-    const { defspeed, defscramblestep } = toRefs(props)
+    const { defspeed, defscramblestep, defIsButtonPanelVisible, defCubeViewType } = toRefs(props)
+
     const speed = ref<number>(defspeed.value);
     const scramblestep = ref<number>(defscramblestep.value);
-
+    const isButtonPanelVisible = ref<boolean>(defIsButtonPanelVisible.value);
+    const cubeViewType = ref<CubeViewType>(defCubeViewType.value);
+    const cubeViewTypeInfoList = CUBE_VIE_TYPE_INFO;
     //
     const controlAction = (type: string) => {
       let cfgvalue = 0;
@@ -66,18 +117,32 @@ export default defineComponent({
       }
       context.emit("controlAction", type, cfgvalue);
     };
+    const onChangeButtonPanelVisible = () => {
+      context.emit("changeButtonPanelVisible", isButtonPanelVisible.value);
+    };
+    const onChangeCubeViewType = () => {
+      context.emit("changeCubeViewType", cubeViewType.value);
+    };
 
     //
     return {
+      cubeViewTypeInfoList,
+      //
+      cubeViewType,
       speed,
       scramblestep,
+      isButtonPanelVisible,
       //
       controlAction,
+      onChangeButtonPanelVisible,
+      onChangeCubeViewType,
     }
   },
   props: {
     defspeed: {type: Number, required: true},
     defscramblestep: {type: Number, required: true},
+    defIsButtonPanelVisible: {type: Boolean, required: true},
+    defCubeViewType: {type: String, required: true},
   }
 })
 </script>

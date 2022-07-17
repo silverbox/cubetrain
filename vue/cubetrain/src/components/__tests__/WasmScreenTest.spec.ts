@@ -12,7 +12,8 @@ describe('WasmScreen.vue', () => {
   it('success to connect with wasm module', async () => {
     const wrapper = shallowMount(WasmScreen, {
       props: {
-        id: 'unittest-id'
+        id: 'unittest-id',
+        cubeViewType: "horizon"
       }
     });
 
